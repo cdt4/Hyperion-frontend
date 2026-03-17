@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HYPERION — API Docs</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --blue:#378ADD;--blue-dim:rgba(55,138,221,0.2);--blue-glow:rgba(55,138,221,0.08);
+  --bg:#020d1a;--surface:rgba(4,20,42,0.85);--surface2:rgba(4,20,42,0.5);
+  --text:rgba(230,241,251,0.95);--muted:rgba(180,210,244,0.45);--dim:rgba(180,210,244,0.2);
+  --green:#1D9E75;--amber:#EF9F27;--red:#E24B4A;--teal:#2BB5C8;
+}
+html{width:100%;background:var(--bg);}
+body{width:100%;min-height:100%;background:var(--bg);font-family:'Syne',sans-serif;color:var(--text);}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+#scanline{position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(55,138,221,0.08),transparent);z-index:3;pointer-events:none;animation:scan 14s linear infinite;}
+@keyframes scan{0%{top:-2px;opacity:0;}3%{opacity:1;}97%{opacity:1;}100%{top:100vh;opacity:0;}}
+#topbar{position:fixed;top:0;left:0;right:0;z-index:20;background:rgba(2,13,26,0.9);backdrop-filter:blur(16px);border-bottom:0.5px solid var(--blue-dim);padding:0 40px;height:56px;display:flex;align-items:center;justify-content:space-between;}
+#logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:300;letter-spacing:0.2em;color:var(--text);text-decoration:none;text-transform:uppercase;}
+#topnav{display:flex;align-items:center;gap:40px;}
+.topnav-link{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.28em;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+.topnav-link:hover,.topnav-link.active{color:rgba(133,183,235,1);}
+.topnav-sep{width:1px;height:12px;background:var(--blue-dim);}
+#avatar-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--blue-dim);background:rgba(55,138,221,0.12);cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:border-color 0.25s,box-shadow 0.25s;text-decoration:none;flex-shrink:0;}
+#avatar-btn:hover{border-color:rgba(55,138,221,0.7);box-shadow:0 0 12px rgba(55,138,221,0.35);}
+#avatar-icon{width:16px;height:16px;opacity:0.45;fill:rgba(133,183,235,0.8);}
+#layout{display:flex;padding-top:56px;position:relative;z-index:10;}
+#sidebar{width:240px;flex-shrink:0;position:sticky;top:56px;align-self:flex-start;height:calc(100vh - 56px);overflow-y:auto;border-right:0.5px solid var(--blue-dim);padding:32px 0;}
+#sidebar::-webkit-scrollbar{width:3px;}
+#sidebar::-webkit-scrollbar-thumb{background:var(--blue-dim);border-radius:2px;}
+.nav-group{margin-bottom:28px;}
+.nav-group-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.35em;color:var(--dim);text-transform:uppercase;padding:0 24px;margin-bottom:8px;}
+.nav-item{display:block;padding:8px 24px;font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.1em;color:var(--muted);text-decoration:none;transition:color 0.15s,background 0.15s;border-left:1.5px solid transparent;}
+.nav-item:hover{color:var(--text);background:var(--blue-glow);}
+.nav-item.active{color:rgba(133,183,235,1);border-left-color:var(--blue);}
+#content{flex:1;padding:56px 64px 100px;max-width:900px;}
+.page-header{margin-bottom:64px;}
+.page-title{font-size:42px;font-weight:300;letter-spacing:0.08em;color:#fff;margin-bottom:12px;}
+.page-subtitle{font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:0.15em;color:var(--muted);}
+.section{margin-bottom:64px;scroll-margin-top:80px;}
+.section-title{font-size:22px;font-weight:400;letter-spacing:0.06em;color:#fff;margin-bottom:20px;padding-bottom:14px;border-bottom:0.5px solid var(--blue-dim);}
+.section-desc{font-size:15px;line-height:1.75;color:var(--muted);margin-bottom:24px;}
+.code-block{background:rgba(2,8,18,0.9);border:0.5px solid var(--blue-dim);border-radius:4px;padding:20px 24px;font-family:'Share Tech Mono',monospace;font-size:13px;line-height:1.7;color:rgba(180,210,244,0.9);overflow-x:auto;margin-bottom:16px;}
+.code-block .comment{color:rgba(100,140,180,0.5);}
+.code-block .key{color:#378ADD;}
+.code-block .val{color:#1D9E75;}
+.code-block .str{color:#EF9F27;}
+.code-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.3em;color:var(--dim);text-transform:uppercase;margin-bottom:8px;}
+.endpoint{background:var(--surface);border:0.5px solid var(--blue-dim);border-radius:4px;margin-bottom:12px;overflow:hidden;}
+.endpoint-header{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:0.5px solid rgba(55,138,221,0.08);}
+.method{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.2em;padding:4px 10px;border-radius:2px;flex-shrink:0;background:rgba(29,158,117,0.12);color:var(--green);border:0.5px solid rgba(29,158,117,0.3);}
+.endpoint-path{font-family:'Share Tech Mono',monospace;font-size:14px;color:#fff;letter-spacing:0.05em;}
+.endpoint-body{padding:16px 20px;}
+.endpoint-desc{font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:16px;}
+.param-table{width:100%;border-collapse:collapse;margin-bottom:8px;}
+.param-table th{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.25em;color:var(--dim);text-transform:uppercase;text-align:left;padding:8px 12px;border-bottom:0.5px solid var(--blue-dim);}
+.param-table td{font-family:'Share Tech Mono',monospace;font-size:13px;padding:10px 12px;border-bottom:0.5px solid rgba(55,138,221,0.04);vertical-align:top;}
+.param-table tr:last-child td{border-bottom:none;}
+.param-name{color:rgba(133,183,235,0.9);}
+.param-type{color:var(--amber);font-size:11px;}
+.param-default{color:var(--dim);font-size:11px;}
+.param-desc{color:var(--muted);font-size:13px;}
+.prefix-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.prefix-item{background:rgba(2,8,18,0.6);border:0.5px solid var(--blue-dim);border-radius:3px;padding:10px 14px;display:flex;align-items:baseline;gap:10px;}
+.prefix-key{font-family:'Share Tech Mono',monospace;font-size:13px;color:rgba(133,183,235,0.9);}
+.prefix-ex{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--dim);}
+code{font-family:'Share Tech Mono',monospace;font-size:12px;background:rgba(55,138,221,0.08);border:0.5px solid var(--blue-dim);border-radius:2px;padding:2px 6px;color:rgba(133,183,235,0.9);}
+.callout{border-left:2px solid;border-radius:0 4px 4px 0;padding:14px 18px;margin-bottom:16px;font-family:'Share Tech Mono',monospace;font-size:13px;line-height:1.6;}
+.callout.info{border-color:var(--blue);background:rgba(55,138,221,0.05);color:rgba(133,183,235,0.8);}
+.callout.warn{border-color:var(--amber);background:rgba(239,159,39,0.05);color:rgba(239,159,39,0.8);}
+.callout.tip{border-color:var(--green);background:rgba(29,158,117,0.05);color:rgba(29,158,117,0.8);}
+.section{animation:fadeUp 0.5s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.section:nth-child(1){animation-delay:0ms;}.section:nth-child(2){animation-delay:60ms;}
+.section:nth-child(3){animation-delay:120ms;}.section:nth-child(4){animation-delay:180ms;}
+.section:nth-child(5){animation-delay:240ms;}.section:nth-child(6){animation-delay:300ms;}
+.section:nth-child(7){animation-delay:360ms;}.section:nth-child(8){animation-delay:420ms;}
+.section:nth-child(9){animation-delay:480ms;}.section:nth-child(10){animation-delay:540ms;}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div id="scanline"></div>
+<div id="topbar">
+  <a href="/" id="logo">Hyperion</a>
+  <nav id="topnav">
+    <a href="/search" class="topnav-link">Search</a>
+    <div class="topnav-sep"></div>
+    <a href="/world" class="topnav-link">World View</a>
+    <div class="topnav-sep"></div>
+    <a href="/links" class="topnav-link">Links</a>
+    <div class="topnav-sep"></div>
+    <a href="/docs" class="topnav-link active">Docs</a>
+    <div class="topnav-sep"></div>
+    <a id="avatar-btn" href="/account" title="Account">
+      <svg id="avatar-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    </a>
+  </nav>
+</div>
+
+<div id="layout">
+  <nav id="sidebar">
+    <div class="nav-group">
+      <div class="nav-group-label">Getting Started</div>
+      <a href="#overview"       class="nav-item active">Overview</a>
+      <a href="#authentication" class="nav-item">Authentication</a>
+      <a href="#rate-limits"    class="nav-item">Rate Limits</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Endpoints</div>
+      <a href="#search"    class="nav-item">GET /api/search</a>
+      <a href="#stats"     class="nav-item">GET /api/stats</a>
+      <a href="#worldview" class="nav-item">GET /api/worldview</a>
+      <a href="#heatmap"   class="nav-item">GET /api/worldview/heatmap</a>
+      <a href="#live"      class="nav-item">GET /api/worldview/live</a>
+      <a href="#wv-stats"  class="nav-item">GET /api/worldview/stats</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Search Reference</div>
+      <a href="#prefixes"   class="nav-item">Query Prefixes</a>
+      <a href="#filters"    class="nav-item">Filters</a>
+      <a href="#sorting"    class="nav-item">Sorting</a>
+      <a href="#pagination" class="nav-item">Pagination</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Response Formats</div>
+      <a href="#host-result"     class="nav-item">Host Result</a>
+      <a href="#identity-result" class="nav-item">Identity Result</a>
+      <a href="#errors"          class="nav-item">Errors</a>
+    </div>
+  </nav>
+
+  <div id="content">
+    <div class="page-header">
+      <div class="page-title">API Documentation</div>
+      <div class="page-subtitle">HYPERION OSINT PLATFORM — REST API v1</div>
+    </div>
+
+    <div class="section" id="overview">
+      <div class="section-title">Overview</div>
+      <div class="section-desc">The Hyperion API provides programmatic access to a continuously updated index of internet hosts, open ports, service banners, TLS certificates, web intelligence, and identity data. All endpoints are read-only.</div>
+      <div class="callout info">Base URL: <strong>https://api.hyperionosint.com</strong></div>
+      <div class="callout tip">All responses are JSON. All requests must use HTTPS. The API only accepts GET requests.</div>
+    </div>
+
+    <div class="section" id="authentication">
+      <div class="section-title">Authentication</div>
+      <div class="section-desc">
+        The Hyperion website is fully public — no key needed to search or browse.<br><br>
+        If you want programmatic access in your own application, you need an API key.
+        Sign in with GitHub at <a href="/account" style="color:rgba(133,183,235,0.9);text-decoration:none;">hyperionosint.com/account</a>
+        — a key is generated automatically and shown in your dashboard.
+      </div>
+      <div class="code-label">Request Header (external / programmatic use)</div>
+      <div class="code-block">X-Hyperion-Key: hk_your_key_here</div>
+      <div class="code-label">Example — curl</div>
+      <div class="code-block">curl https://api.hyperionosint.com/api/stats \
+  -H <span class="str">"X-Hyperion-Key: hk_your_key_here"</span></div>
+      <div class="code-label">Example — JavaScript</div>
+      <div class="code-block"><span class="key">const</span> res = <span class="key">await</span> fetch(<span class="str">'https://api.hyperionosint.com/api/search?q=port:22'</span>, {
+  headers: { <span class="str">'X-Hyperion-Key'</span>: <span class="str">'hk_your_key_here'</span> }
+});
+<span class="key">const</span> data = <span class="key">await</span> res.json();</div>
+      <div class="callout warn">Keep your API key private. Regenerate it any time from your account dashboard.</div>
+    </div>
+
+    <div class="section" id="rate-limits">
+      <div class="section-title">Rate Limits</div>
+      <div class="section-desc">Two rolling window rate limits are enforced. Exceeding either returns a <code>429</code> response with no body. The window resets automatically — wait and retry.</div>
+      <table class="param-table">
+        <tr><th>Limit</th><th>Window</th><th>Scope</th><th>Response on exceed</th></tr>
+        <tr><td class="param-name">60 requests</td><td class="param-desc">60 seconds</td><td class="param-desc">Per API key</td><td class="param-type">HTTP 429</td></tr>
+        <tr><td class="param-name">120 requests</td><td class="param-desc">60 seconds</td><td class="param-desc">Per IP address</td><td class="param-type">HTTP 429</td></tr>
+      </table>
+    </div>
+
+    <div class="section" id="search">
+      <div class="section-title">GET /api/search</div>
+      <div class="endpoint">
+        <div class="endpoint-header"><div class="method">GET</div><div class="endpoint-path">/api/search</div></div>
+        <div class="endpoint-body">
+          <div class="endpoint-desc">The primary search endpoint. Accepts a query string and auto-detects the query type — IP, domain, email, CVE, ASN, prefix search, or freetext. Returns a paginated list of result cards.</div>
+          <table class="param-table">
+            <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+            <tr><td class="param-name">q</td><td class="param-type">string</td><td class="param-default">required</td><td class="param-desc">Search query. Max 120 chars. Supports plain values, prefixed queries (e.g. <code>port:22</code>), IPs, domains, emails, CVEs, and ASNs.</td></tr>
+            <tr><td class="param-name">page</td><td class="param-type">integer</td><td class="param-default">1</td><td class="param-desc">Page number, 1-based.</td></tr>
+            <tr><td class="param-name">limit</td><td class="param-type">integer</td><td class="param-default">50</td><td class="param-desc">Results per page. Max 100.</td></tr>
+            <tr><td class="param-name">sort</td><td class="param-type">string</td><td class="param-default">last_seen</td><td class="param-desc">Sort field. See <a href="#sorting" style="color:rgba(133,183,235,0.7)">Sorting</a>.</td></tr>
+            <tr><td class="param-name">order</td><td class="param-type">string</td><td class="param-default">desc</td><td class="param-desc"><code>asc</code> or <code>desc</code>.</td></tr>
+            <tr><td class="param-name">country</td><td class="param-type">string</td><td class="param-default">—</td><td class="param-desc">Filter by country code (e.g. <code>US</code>) or country name.</td></tr>
+            <tr><td class="param-name">org</td><td class="param-type">string</td><td class="param-default">—</td><td class="param-desc">Filter by organisation or ISP name (partial match).</td></tr>
+            <tr><td class="param-name">tag</td><td class="param-type">string</td><td class="param-default">—</td><td class="param-desc">Filter by host tag (e.g. <code>redis-noauth</code>).</td></tr>
+            <tr><td class="param-name">port</td><td class="param-type">integer</td><td class="param-default">—</td><td class="param-desc">Filter to hosts with this port open (1–65535).</td></tr>
+            <tr><td class="param-name">has_vulns</td><td class="param-type">boolean</td><td class="param-default">—</td><td class="param-desc">If <code>true</code>, only return hosts with known CVEs.</td></tr>
+            <tr><td class="param-name">has_http</td><td class="param-type">boolean</td><td class="param-default">—</td><td class="param-desc">If <code>true</code>, only return hosts with HTTP intelligence data.</td></tr>
+            <tr><td class="param-name">has_ssh</td><td class="param-type">boolean</td><td class="param-default">—</td><td class="param-desc">If <code>true</code>, only return hosts with port 22 open.</td></tr>
+            <tr><td class="param-name">tls_version</td><td class="param-type">string</td><td class="param-default">—</td><td class="param-desc">Filter by TLS version (e.g. <code>TLSv1.1</code>).</td></tr>
+          </table>
+          <div class="code-label">Example Requests</div>
+          <div class="code-block"><span class="comment"># All hosts with Redis exposed</span>
+GET /api/search?q=port:6379
+
+<span class="comment"># WordPress sites in Germany with known vulns</span>
+GET /api/search?q=cms:WordPress&amp;country=DE&amp;has_vulns=true
+
+<span class="comment"># Full details on a single IP</span>
+GET /api/search?q=1.2.3.4
+
+<span class="comment"># CVE lookup</span>
+GET /api/search?q=CVE-2021-44228
+
+<span class="comment"># Email intelligence</span>
+GET /api/search?q=user@example.com
+
+<span class="comment"># People search</span>
+GET /api/search?q=name:John+Smith</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="stats">
+      <div class="section-title">GET /api/stats</div>
+      <div class="endpoint">
+        <div class="endpoint-header"><div class="method">GET</div><div class="endpoint-path">/api/stats</div></div>
+        <div class="endpoint-body">
+          <div class="endpoint-desc">Returns platform-wide counters updated continuously by the scanner.</div>
+          <div class="code-label">Response</div>
+          <div class="code-block">{
+  <span class="key">"ips"</span>:        <span class="val">4820000000</span>,
+  <span class="key">"ports"</span>:      <span class="val">1240000000</span>,
+  <span class="key">"people"</span>:     <span class="val">2841000</span>,
+  <span class="key">"vehicles"</span>:   <span class="val">980000</span>,
+  <span class="key">"updated_at"</span>: <span class="str">"2025-03-13T12:00:00Z"</span>
+}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="worldview">
+      <div class="section-title">GET /api/worldview</div>
+      <div class="endpoint">
+        <div class="endpoint-header"><div class="method">GET</div><div class="endpoint-path">/api/worldview</div></div>
+        <div class="endpoint-body">
+          <div class="endpoint-desc">Returns pre-aggregated geo-bucketed data for map visualisation layers.</div>
+          <table class="param-table">
+            <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+            <tr><td class="param-name">types</td><td class="param-type">string</td><td class="param-default">ipheat,identity,<br>breach,scannode,<br>camera,tor</td><td class="param-desc">Comma-separated layer types. Valid: <code>ipheat</code> <code>identity</code> <code>breach</code> <code>scannode</code> <code>camera</code> <code>tor</code> <code>cable</code> <code>isp</code></td></tr>
+          </table>
+          <div class="code-label">Response</div>
+          <div class="code-block">{
+  <span class="key">"buckets"</span>: [
+    { <span class="key">"type"</span>: <span class="str">"ipheat"</span>, <span class="key">"lat"</span>: <span class="val">51.5</span>, <span class="key">"lon"</span>: <span class="val">-0.1</span>, <span class="key">"value"</span>: <span class="val">4200</span>, <span class="key">"label"</span>: <span class="str">"London"</span> }
+  ]
+}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="heatmap">
+      <div class="section-title">GET /api/worldview/heatmap</div>
+      <div class="endpoint">
+        <div class="endpoint-header"><div class="method">GET</div><div class="endpoint-path">/api/worldview/heatmap</div></div>
+        <div class="endpoint-body">
+          <div class="endpoint-desc">Computes a live IP density heatmap from the hosts collection. Heavy query on large datasets — cache results where possible.</div>
+          <table class="param-table">
+            <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+            <tr><td class="param-name">resolution</td><td class="param-type">float</td><td class="param-default">2.0</td><td class="param-desc">Grid cell size in degrees (0.5–10.0). <code>2.0</code> ≈ 200km cells.</td></tr>
+          </table>
+          <div class="code-label">Response</div>
+          <div class="code-block">{
+  <span class="key">"buckets"</span>: [ { <span class="key">"lat"</span>: <span class="val">50.0</span>, <span class="key">"lon"</span>: <span class="val">-0.0</span>, <span class="key">"value"</span>: <span class="val">8420</span> } ],
+  <span class="key">"resolution"</span>: <span class="val">5.0</span>
+}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="live">
+      <div class="section-title">GET /api/worldview/live</div>
+      <div class="endpoint">
+        <div class="endpoint-header"><div class="method">GET</div><div class="endpoint-path">/api/worldview/live</div></div>
+        <div class="endpoint-body">
+          <div class="endpoint-desc">Returns recently enriched hosts with geo coordinates. Poll every few seconds to flash live scan activity on the map. Use the <code>since</code> parameter to fetch only new enrichments since your last poll.</div>
+          <table class="param-table">
+            <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+            <tr><td class="param-name">limit</td><td class="param-type">integer</td><td class="param-default">200</td><td class="param-desc">Number of hosts to return (1–500).</td></tr>
+            <tr><td class="param-name">since</td><td class="param-type">string</td><td class="param-default">—</td><td class="param-desc">ISO 8601 datetime. Only return hosts enriched after this timestamp.</td></tr>
+          </table>
+          <div class="code-label">Response</div>
+          <div class="code-block">{
+  <span class="key">"hosts"</span>: [
+    { <span class="key">"lat"</span>: <span class="val">51.5</span>, <span class="key">"lon"</span>: <span class="val">-0.1</span>, <span class="key">"enriched_at"</span>: <span class="str">"2025-03-13T12:00:01.000Z"</span> }
+  ]
+}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="wv-stats">
+      <div class="section-title">GET /api/worldview/stats</div>
+      <div class="endpoint">
+        <div class="endpoint-header"><div class="method">GET</div><div class="endpoint-path">/api/worldview/stats</div></div>
+        <div class="endpoint-body">
+          <div class="endpoint-desc">Returns aggregated counts per worldview layer type.</div>
+          <div class="code-label">Response</div>
+          <div class="code-block">{
+  <span class="key">"ipheat"</span>: <span class="val">4820000</span>, <span class="key">"identity"</span>: <span class="val">284100</span>,
+  <span class="key">"breach"</span>: <span class="val">19200</span>,  <span class="key">"camera"</span>: <span class="val">8840</span>, <span class="key">"tor"</span>: <span class="val">3210</span>
+}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="prefixes">
+      <div class="section-title">Query Prefixes</div>
+      <div class="section-desc">Prefix your query with a field name followed by a colon to search a specific field. The API auto-detects bare IPs, emails, domains, CVEs, and ASNs without a prefix.</div>
+      <div class="prefix-grid">
+        <div class="prefix-item"><span class="prefix-key">port:</span><span class="prefix-ex">port:22 / port:80,443</span></div>
+        <div class="prefix-item"><span class="prefix-key">cve:</span><span class="prefix-ex">cve:CVE-2021-44228</span></div>
+        <div class="prefix-item"><span class="prefix-key">asn:</span><span class="prefix-ex">asn:AS15169</span></div>
+        <div class="prefix-item"><span class="prefix-key">org:</span><span class="prefix-ex">org:Amazon</span></div>
+        <div class="prefix-item"><span class="prefix-key">isp:</span><span class="prefix-ex">isp:Cloudflare</span></div>
+        <div class="prefix-item"><span class="prefix-key">tag:</span><span class="prefix-ex">tag:redis-noauth</span></div>
+        <div class="prefix-item"><span class="prefix-key">country:</span><span class="prefix-ex">country:US / country:Germany</span></div>
+        <div class="prefix-item"><span class="prefix-key">city:</span><span class="prefix-ex">city:Berlin</span></div>
+        <div class="prefix-item"><span class="prefix-key">cms:</span><span class="prefix-ex">cms:WordPress</span></div>
+        <div class="prefix-item"><span class="prefix-key">tech:</span><span class="prefix-ex">tech:Nginx</span></div>
+        <div class="prefix-item"><span class="prefix-key">title:</span><span class="prefix-ex">title:Dashboard</span></div>
+        <div class="prefix-item"><span class="prefix-key">hostname:</span><span class="prefix-ex">hostname:example.com</span></div>
+        <div class="prefix-item"><span class="prefix-key">keyword:</span><span class="prefix-ex">keyword:admin</span></div>
+        <div class="prefix-item"><span class="prefix-key">tls:</span><span class="prefix-ex">tls:TLSv1.1</span></div>
+        <div class="prefix-item"><span class="prefix-key">ssh:</span><span class="prefix-ex">ssh:OpenSSH / ssh:Dropbear</span></div>
+        <div class="prefix-item"><span class="prefix-key">version:</span><span class="prefix-ex">version:7.4</span></div>
+        <div class="prefix-item"><span class="prefix-key">hash:</span><span class="prefix-ex">hash:&lt;favicon_hash&gt;</span></div>
+        <div class="prefix-item"><span class="prefix-key">body:</span><span class="prefix-ex">body:&lt;md5_fingerprint&gt;</span></div>
+        <div class="prefix-item"><span class="prefix-key">phone:</span><span class="prefix-ex">phone:+1234567890</span></div>
+        <div class="prefix-item"><span class="prefix-key">username:</span><span class="prefix-ex">username:johndoe</span></div>
+        <div class="prefix-item"><span class="prefix-key">name:</span><span class="prefix-ex">name:John Smith / name:</span></div>
+      </div>
+      <div class="callout tip">Auto-detected without prefix: IP addresses, email addresses, domain names, CVE IDs, and ASNs.</div>
+      <div class="callout info"><code>name:</code> with no value returns a browse index of all identities. <code>name:John Smith</code> returns a full profile with linked IPs, accounts, and breach records.</div>
+    </div>
+
+    <div class="section" id="filters">
+      <div class="section-title">Filters</div>
+      <div class="section-desc">Filters are applied as additional constraints on top of the main query and can be combined freely.</div>
+      <div class="code-label">Examples</div>
+      <div class="code-block"><span class="comment"># WordPress in the US with vulns, port 443 open</span>
+GET /api/search?q=cms:WordPress&amp;country=US&amp;has_vulns=true&amp;port=443
+
+<span class="comment"># Redis in Google's ASN, sorted by most ports</span>
+GET /api/search?q=port:6379&amp;org=Google&amp;sort=port_count
+
+<span class="comment"># Hosts with port 8443 AND SSH open</span>
+GET /api/search?q=port:8443&amp;has_ssh=true</div>
+    </div>
+
+    <div class="section" id="sorting">
+      <div class="section-title">Sorting</div>
+      <table class="param-table">
+        <tr><th>Value</th><th>Description</th></tr>
+        <tr><td class="param-name">last_seen</td><td class="param-desc">Most recently scanned first (default)</td></tr>
+        <tr><td class="param-name">first_seen</td><td class="param-desc">Oldest indexed hosts first</td></tr>
+        <tr><td class="param-name">country</td><td class="param-desc">Alphabetical by country name</td></tr>
+        <tr><td class="param-name">org</td><td class="param-desc">Alphabetical by organisation</td></tr>
+        <tr><td class="param-name">ip</td><td class="param-desc">Numerical by IP address</td></tr>
+        <tr><td class="param-name">port_count</td><td class="param-desc">Hosts with most open ports first</td></tr>
+      </table>
+      <div class="callout info">Combine with <code>order=asc</code> or <code>order=desc</code> (default: desc).</div>
+    </div>
+
+    <div class="section" id="pagination">
+      <div class="section-title">Pagination</div>
+      <div class="section-desc">All list endpoints return pagination metadata alongside results.</div>
+      <div class="code-label">Pagination fields in every response</div>
+      <div class="code-block">{
+  <span class="key">"total"</span>:    <span class="val">4820</span>,   <span class="comment">// total matching documents</span>
+  <span class="key">"page"</span>:     <span class="val">1</span>,      <span class="comment">// current page</span>
+  <span class="key">"pages"</span>:    <span class="val">97</span>,     <span class="comment">// total pages</span>
+  <span class="key">"limit"</span>:    <span class="val">50</span>,     <span class="comment">// results per page</span>
+  <span class="key">"has_more"</span>: <span class="val">true</span>,   <span class="comment">// whether another page exists</span>
+  <span class="key">"cards"</span>:    [...]
+}</div>
+      <div class="callout info">Single-record lookups (IP, email, phone, username, name) always return page 1 of 1 and do not support pagination.</div>
+    </div>
+
+    <div class="section" id="host-result">
+      <div class="section-title">Host Result</div>
+      <div class="section-desc">IP lookups return cards covering network intelligence, open ports, service banners, web intelligence, TLS details, vulnerabilities, and tags.</div>
+      <div class="code-label">Key fields</div>
+      <div class="code-block">{
+  <span class="key">"ip"</span>:           <span class="str">"1.2.3.4"</span>,
+  <span class="key">"hostname"</span>:     <span class="str">"mail.example.com"</span>,
+  <span class="key">"asn"</span>:          <span class="str">"AS15169"</span>,
+  <span class="key">"org"</span>:          <span class="str">"Google LLC"</span>,
+  <span class="key">"country_name"</span>: <span class="str">"United States"</span>,
+  <span class="key">"ports"</span>:        [<span class="val">22</span>, <span class="val">80</span>, <span class="val">443</span>],
+  <span class="key">"vulns"</span>:        [<span class="str">"CVE-2021-44228"</span>],
+  <span class="key">"tags"</span>:         [<span class="str">"self-signed-cert"</span>],
+  <span class="key">"http"</span>: { <span class="key">"title"</span>: <span class="str">"Example Corp"</span>, <span class="key">"cms"</span>: <span class="str">"WordPress 6.2"</span> },
+  <span class="key">"ssl"</span>:  { <span class="key">"subject"</span>: <span class="str">"example.com"</span>, <span class="key">"tls_version"</span>: <span class="str">"TLSv1.3"</span>, <span class="key">"valid"</span>: <span class="val">true</span> },
+  <span class="key">"last_seen"</span>:    <span class="str">"2025-03-10T14:22:00Z"</span>
+}</div>
+    </div>
+
+    <div class="section" id="identity-result">
+      <div class="section-title">Identity Result</div>
+      <div class="section-desc">Email, phone, username, and name lookups cross-reference the identity collection against the host index. Results include breach records, linked accounts, associated IPs, and sites exposing the identifier.</div>
+      <div class="code-label">Key fields</div>
+      <div class="code-block">{
+  <span class="key">"name"</span>:      <span class="str">"John Doe"</span>,
+  <span class="key">"emails"</span>:    [<span class="str">"john@example.com"</span>],
+  <span class="key">"usernames"</span>: [<span class="str">"jdoe92"</span>],
+  <span class="key">"ips"</span>:       [<span class="str">"1.2.3.4"</span>],
+  <span class="key">"breaches"</span>: [{ <span class="key">"source"</span>: <span class="str">"LinkedIn"</span>, <span class="key">"year"</span>: <span class="val">2021</span> }],
+  <span class="key">"accounts"</span>: [{ <span class="key">"platform"</span>: <span class="str">"github"</span>, <span class="key">"handle"</span>: <span class="str">"jdoe92"</span> }]
+}</div>
+    </div>
+
+    <div class="section" id="errors">
+      <div class="section-title">Errors</div>
+      <table class="param-table">
+        <tr><th>Status</th><th>Meaning</th></tr>
+        <tr><td class="param-name">400</td><td class="param-desc">Bad request — invalid query format or parameter value</td></tr>
+        <tr><td class="param-name">403</td><td class="param-desc">Forbidden — missing or invalid API key</td></tr>
+        <tr><td class="param-name">429</td><td class="param-desc">Rate limit exceeded — wait and retry</td></tr>
+        <tr><td class="param-name">500</td><td class="param-desc">Internal server error</td></tr>
+      </table>
+      <div class="callout warn">403 and 429 responses return no body. 400 responses include a <code>detail</code> field.</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const bgCanvas = document.getElementById('bg');
+const bgCtx    = bgCanvas.getContext('2d');
+bgCanvas.width  = window.innerWidth;
+bgCanvas.height = window.innerHeight;
+Array.from({length:250},()=>({
+  x:Math.random()*bgCanvas.width, y:Math.random()*bgCanvas.height,
+  r:Math.random()<0.05?0.9:0.4, a:0.03+Math.random()*0.08
+})).forEach(d=>{
+  bgCtx.beginPath(); bgCtx.arc(d.x,d.y,d.r,0,Math.PI*2);
+  bgCtx.fillStyle=`rgba(55,138,221,${d.a})`; bgCtx.fill();
+});
+const sections = document.querySelectorAll('.section[id]');
+const navItems = document.querySelectorAll('.nav-item');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navItems.forEach(item => {
+        item.classList.toggle('active', item.getAttribute('href') === '#' + entry.target.id);
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+sections.forEach(s => observer.observe(s));
+navItems.forEach(item => {
+  item.addEventListener('click', e => {
+    const target = document.querySelector(item.getAttribute('href'));
+    if (target) { e.preventDefault(); target.scrollIntoView({behavior:'smooth'}); }
+  });
+});
+</script>
+</body>
+</html>

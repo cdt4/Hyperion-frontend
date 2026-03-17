@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HYPERION — Search</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --blue:#378ADD;--blue-dim:rgba(55,138,221,0.18);
+  --bg:#020d1a;--surface:rgba(4,20,42,0.9);--surface2:rgba(6,26,54,0.7);
+  --text:rgba(230,241,251,0.95);--muted:rgba(180,210,244,0.45);--dim:rgba(180,210,244,0.2);
+  --green:#1D9E75;--amber:#EF9F27;--red:#E24B4A;--teal:#2ab8c4;
+}
+html{font-size:150%;}
+html,body{width:100%;min-height:100%;background:var(--bg);font-family:'Syne',sans-serif;color:var(--text);}
+
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+#scanline{position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(55,138,221,0.08),transparent);z-index:3;pointer-events:none;animation:scan 14s linear infinite;}
+@keyframes scan{0%{top:-2px;opacity:0;}3%{opacity:1;}97%{opacity:1;}100%{top:100vh;opacity:0;}}
+
+/* ── Topbar ── */
+#topbar{position:fixed;top:0;left:0;right:0;z-index:20;background:rgba(2,13,26,0.92);backdrop-filter:blur(20px);border-bottom:0.5px solid var(--blue-dim);padding:0 40px;height:56px;display:flex;align-items:center;justify-content:space-between;}
+#logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:300;letter-spacing:0.2em;color:var(--text);text-decoration:none;text-transform:uppercase;}
+#topnav{display:flex;align-items:center;gap:40px;}
+.topnav-link{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.28em;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+.topnav-link:hover,.topnav-link.active{color:rgba(133,183,235,1);}
+.topnav-sep{width:1px;height:12px;background:var(--blue-dim);}
+#avatar-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--blue-dim);background:rgba(55,138,221,0.12);cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:border-color 0.25s,box-shadow 0.25s;text-decoration:none;flex-shrink:0;}
+#avatar-btn:hover{border-color:rgba(55,138,221,0.7);box-shadow:0 0 12px rgba(55,138,221,0.35);}
+#avatar-icon{width:16px;height:16px;opacity:0.45;fill:rgba(133,183,235,0.8);}
+
+/* ── Main ── */
+#main{position:relative;z-index:10;padding:88px 40px 120px;max-width:1100px;margin:0 auto;}
+
+/* ══════════════════════════════
+   SEARCH BUILDER
+══════════════════════════════ */
+#search-builder{border:0.5px solid var(--blue-dim);border-radius:6px;background:var(--surface);margin-bottom:20px;}
+#builder-top{position:relative;min-height:140px;border-bottom:0.5px solid var(--blue-dim);}
+#type-selector{position:absolute;top:0;left:0;bottom:0;width:150px;overflow-y:auto;border-right:0.5px solid var(--blue-dim);scrollbar-width:thin;scrollbar-color:var(--blue-dim) transparent;}
+#type-selector::-webkit-scrollbar{width:3px;}
+#type-selector::-webkit-scrollbar-thumb{background:var(--blue-dim);border-radius:2px;}
+.type-pill{display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;border:none;background:none;text-align:left;transition:background 0.15s,color 0.15s;border-bottom:0.5px solid rgba(55,138,221,0.05);white-space:nowrap;}
+.type-pill:last-child{border-bottom:none;}
+.type-pill:hover{background:rgba(55,138,221,0.07);color:var(--text);}
+.type-pill.active{background:rgba(55,138,221,0.14);color:#fff;}
+.type-pill .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;opacity:0.4;transition:opacity 0.15s;}
+.type-pill.active .dot{opacity:1;}
+.dot.blue{background:var(--blue);}
+.dot.green{background:var(--green);}
+.dot.red{background:var(--red);}
+.dot.amber{background:var(--amber);}
+.dot.teal{background:var(--teal);}
+#builder-input-col{margin-left:150px;display:flex;flex-direction:column;min-height:140px;}
+#input-row{display:flex;align-items:stretch;flex:1;min-height:80px;}
+#query-prefix{display:flex;align-items:center;font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--blue);padding:0 0 0 20px;white-space:nowrap;letter-spacing:0.05em;opacity:0;transition:opacity 0.2s;}
+#query-prefix.show{opacity:1;}
+#query-input{flex:1;background:transparent;border:none;outline:none;font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:0.04em;color:var(--text);padding:0 16px;caret-color:var(--blue);min-width:0;}
+#query-input::placeholder{color:var(--dim);}
+#search-go{flex-shrink:0;background:rgba(55,138,221,0.1);border:none;border-left:0.5px solid var(--blue-dim);padding:0 28px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.2em;color:var(--blue);text-transform:uppercase;cursor:pointer;transition:background 0.2s,color 0.2s;white-space:nowrap;border-radius:0 6px 0 0;}
+#search-go:hover{background:rgba(55,138,221,0.22);color:#fff;}
+#modifier-row{display:flex;align-items:center;border-top:0.5px solid rgba(55,138,221,0.08);min-height:42px;overflow-x:auto;scrollbar-width:none;}
+#modifier-row::-webkit-scrollbar{display:none;}
+.mod-sect{display:flex;align-items:center;gap:6px;border-right:0.5px solid rgba(55,138,221,0.08);padding:0 12px;height:42px;flex-shrink:0;}
+.mod-sect:last-child{border-right:none;margin-left:auto;}
+.mod-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.2em;color:var(--dim);text-transform:uppercase;white-space:nowrap;flex-shrink:0;}
+.mod-toggle{display:flex;align-items:center;padding:3px 9px;border-radius:2px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.1em;color:var(--muted);background:none;border:0.5px solid transparent;transition:all 0.15s;white-space:nowrap;text-transform:uppercase;}
+.mod-toggle:hover{border-color:var(--blue-dim);color:var(--text);}
+.mod-toggle.on{background:rgba(55,138,221,0.12);border-color:rgba(55,138,221,0.4);color:#fff;}
+.mod-toggle.on.green{background:rgba(29,158,117,0.1);border-color:rgba(29,158,117,0.3);color:var(--green);}
+.mod-toggle.on.red{background:rgba(226,75,74,0.1);border-color:rgba(226,75,74,0.3);color:var(--red);}
+.mod-input{background:rgba(2,13,26,0.6);border:0.5px solid var(--blue-dim);border-radius:2px;padding:3px 8px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text);outline:none;width:80px;caret-color:var(--blue);transition:border-color 0.15s;}
+.mod-input:focus{border-color:rgba(55,138,221,0.5);}
+.mod-input::placeholder{color:var(--dim);}
+.mod-select{background:rgba(2,13,26,0.6);border:0.5px solid var(--blue-dim);border-radius:2px;padding:3px 8px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);outline:none;cursor:pointer;}
+.mod-select option{background:#020d1a;}
+
+/* ── Toolbar ── */
+#toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.status-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.toolbar-right{display:flex;align-items:center;gap:8px;}
+.status-pill{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:0.5px solid var(--blue-dim);border-radius:3px;padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.12em;color:var(--muted);}
+.status-pill b{color:var(--text);}
+.tool-btn{background:var(--surface2);border:0.5px solid var(--blue-dim);border-radius:3px;padding:5px 12px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.12em;color:var(--muted);cursor:pointer;transition:all 0.2s;text-transform:uppercase;}
+.tool-btn:hover,.tool-btn.active{background:rgba(55,138,221,0.1);border-color:rgba(55,138,221,0.35);color:var(--text);}
+#export-btn{display:none;align-items:center;gap:6px;background:rgba(29,158,117,0.08);border:0.5px solid rgba(29,158,117,0.3);border-radius:3px;padding:5px 14px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.12em;color:var(--green);text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+#export-btn:hover{background:rgba(29,158,117,0.15);color:#fff;}
+#export-btn.visible{display:flex;}
+
+/* ── Results ── */
+#results{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
+#results.list-view{grid-template-columns:1fr;}
+.card{background:var(--surface);border:0.5px solid var(--blue-dim);border-radius:4px;overflow:hidden;animation:cardIn 0.25s ease forwards;opacity:0;transition:border-color 0.2s,transform 0.15s;}
+.card:hover{border-color:rgba(55,138,221,0.4);transform:translateY(-1px);}
+@keyframes cardIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+.card.color-blue{border-left:2px solid var(--blue);}
+.card.color-green{border-left:2px solid var(--green);}
+.card.color-red{border-left:2px solid var(--red);}
+.card.color-amber{border-left:2px solid var(--amber);}
+.card.color-teal{border-left:2px solid var(--teal);}
+.card.summary{border-left:none;border-top:2px solid var(--blue);}
+.card.summary .card-header{cursor:default;}
+.card-header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid rgba(55,138,221,0.06);cursor:pointer;}
+.card-title{font-size:14px;font-weight:400;letter-spacing:0.04em;color:#fff;font-family:'Share Tech Mono',monospace;}
+.card-arrow{font-size:12px;color:var(--muted);transition:transform 0.2s;}
+.card.collapsed .card-arrow{transform:rotate(-90deg);}
+.card-body{padding:0 16px 14px;}
+.card.collapsed .card-body{display:none;}
+.kv-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:0.5px solid rgba(55,138,221,0.04);font-family:'Share Tech Mono',monospace;font-size:11px;}
+.kv-row:last-child{border-bottom:none;}
+.kv-key{color:var(--muted);letter-spacing:0.08em;flex-shrink:0;margin-right:12px;}
+.kv-val{color:var(--text);text-align:right;word-break:break-all;letter-spacing:0.04em;}
+.kv-val.blue{color:rgba(133,183,235,0.9);}
+.kv-val.green{color:var(--green);}
+.kv-val.red{color:var(--red);}
+.kv-val.amber{color:var(--amber);}
+.kv-val.dim{color:var(--dim);}
+.ports-wrap{padding:10px 0;display:flex;flex-wrap:wrap;gap:5px;}
+.port-badge{font-family:'Share Tech Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;cursor:pointer;background:rgba(29,158,117,0.1);border:0.5px solid rgba(29,158,117,0.25);color:var(--green);transition:background 0.15s;}
+.port-badge:hover{background:rgba(29,158,117,0.2);}
+.port-badge.vuln{background:rgba(226,75,74,0.1);border-color:rgba(226,75,74,0.3);color:var(--red);}
+.tags-wrap{padding:10px 0;display:flex;flex-wrap:wrap;gap:5px;}
+.tag-badge{font-family:'Share Tech Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;cursor:pointer;background:rgba(55,138,221,0.08);border:0.5px solid var(--blue-dim);color:var(--muted);transition:all 0.15s;}
+.tag-badge:hover{background:rgba(55,138,221,0.15);color:var(--text);}
+.account-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:0.5px solid rgba(55,138,221,0.04);font-family:'Share Tech Mono',monospace;font-size:11px;}
+.account-row:last-child{border-bottom:none;}
+.account-platform{color:var(--muted);width:80px;flex-shrink:0;}
+.account-handle{color:var(--text);}
+.account-link{color:var(--blue);text-decoration:none;font-size:11px;margin-left:auto;opacity:0.7;}
+.account-link:hover{opacity:1;}
+
+/* ── Empty ── */
+#empty{text-align:center;padding:80px 40px;display:none;font-family:'Share Tech Mono',monospace;color:var(--muted);letter-spacing:0.15em;}
+#empty .empty-icon{font-size:32px;margin-bottom:16px;opacity:0.3;}
+#empty .empty-title{font-size:14px;text-transform:uppercase;margin-bottom:8px;}
+#empty .empty-sub{font-size:10px;opacity:0.6;line-height:1.9;}
+.spinner{display:inline-block;width:13px;height:13px;border:1.5px solid var(--blue-dim);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── Load more ── */
+#load-more-wrap{display:flex;justify-content:center;margin-top:32px;}
+#load-more-btn{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.18em;padding:14px 48px;border-radius:3px;cursor:pointer;background:rgba(55,138,221,0.08);border:0.5px solid rgba(55,138,221,0.3);color:var(--blue);text-transform:uppercase;transition:all 0.2s;}
+#load-more-btn:hover{background:rgba(55,138,221,0.16);color:#fff;}
+#load-more-btn:disabled{opacity:0.3;cursor:not-allowed;}
+
+/* ── Export modal ── */
+#export-modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(2,13,26,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
+#export-modal.open{display:flex;}
+#export-panel{background:var(--surface);border:0.5px solid rgba(55,138,221,0.4);border-radius:6px;padding:32px;min-width:340px;max-width:460px;width:90%;}
+#export-panel h2{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.25em;color:var(--blue);text-transform:uppercase;margin-bottom:20px;}
+.export-opt{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:0.5px solid rgba(55,138,221,0.08);}
+.export-opt:last-of-type{border-bottom:none;margin-bottom:16px;}
+.export-opt-label{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.1em;color:var(--text);}
+.export-opt-sub{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;}
+.export-dl{background:rgba(55,138,221,0.1);border:0.5px solid var(--blue-dim);border-radius:3px;padding:5px 14px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.12em;color:var(--blue);text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+.export-dl:hover{background:rgba(55,138,221,0.2);color:#fff;}
+.export-dl.green{background:rgba(29,158,117,0.1);border-color:rgba(29,158,117,0.3);color:var(--green);}
+.export-dl.green:hover{background:rgba(29,158,117,0.2);color:#fff;}
+#export-close{width:100%;padding:9px;background:none;border:0.5px solid var(--blue-dim);border-radius:3px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;cursor:pointer;transition:all 0.2s;margin-top:6px;}
+#export-close:hover{border-color:rgba(55,138,221,0.4);color:var(--text);}
+.export-info{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.08em;color:var(--dim);margin-bottom:16px;line-height:1.7;background:rgba(55,138,221,0.04);border:0.5px solid rgba(55,138,221,0.1);border-radius:3px;padding:10px 12px;}
+.export-info b{color:var(--muted);}
+
+@media(max-width:680px){
+  #main{padding:76px 16px 80px;}
+  #topbar{padding:0 16px;}
+  #builder-top{min-height:auto;}
+  #type-selector{position:static;width:100%;border-right:none;border-bottom:0.5px solid var(--blue-dim);display:flex;flex-direction:row;overflow-x:auto;overflow-y:hidden;}
+  #type-selector::-webkit-scrollbar{display:none;}
+  .type-pill{flex-shrink:0;border-bottom:none;border-right:0.5px solid rgba(55,138,221,0.08);}
+  #builder-input-col{margin-left:0;}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<div id="scanline"></div>
+
+<div id="topbar">
+  <a href="/" id="logo">Hyperion</a>
+  <nav id="topnav">
+    <a href="/search" class="topnav-link active">Search</a>
+    <div class="topnav-sep"></div>
+    <a href="/world" class="topnav-link">World View</a>
+    <div class="topnav-sep"></div>
+    <a href="/links" class="topnav-link">Links</a>
+    <div class="topnav-sep"></div>
+    <a href="/docs" class="topnav-link">Docs</a>
+    <div class="topnav-sep"></div>
+    <a id="avatar-btn" href="/account" title="Account">
+      <svg id="avatar-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    </a>
+  </nav>
+</div>
+
+<div id="main">
+  <div id="search-builder">
+    <div id="builder-top">
+      <div id="type-selector">
+        <button class="type-pill active" data-prefix="" data-ph="IP, domain, email, CVE, port:80 ..."><span class="dot blue"></span>Auto</button>
+        <button class="type-pill" data-prefix="port:" data-ph="80, 443, 22 ..."><span class="dot green"></span>Port</button>
+        <button class="type-pill" data-prefix="org:" data-ph="Amazon, Google ..."><span class="dot blue"></span>Org / ISP</button>
+        <button class="type-pill" data-prefix="country:" data-ph="US, DE, GB ..."><span class="dot blue"></span>Country</button>
+        <button class="type-pill" data-prefix="tag:" data-ph="redis-noauth ..."><span class="dot amber"></span>Tag</button>
+        <button class="type-pill" data-prefix="cve:" data-ph="CVE-2021-44228"><span class="dot red"></span>CVE</button>
+        <button class="type-pill" data-prefix="cms:" data-ph="WordPress, Drupal ..."><span class="dot amber"></span>CMS</button>
+        <button class="type-pill" data-prefix="tech:" data-ph="Nginx, React ..."><span class="dot green"></span>Tech</button>
+        <button class="type-pill" data-prefix="title:" data-ph="Dashboard, Login ..."><span class="dot blue"></span>Page Title</button>
+        <button class="type-pill" data-prefix="hostname:" data-ph="example.com ..."><span class="dot teal"></span>Hostname</button>
+        <button class="type-pill" data-prefix="tls:" data-ph="TLSv1.1, TLSv1.3"><span class="dot teal"></span>TLS</button>
+        <button class="type-pill" data-prefix="ssh:" data-ph="OpenSSH, Dropbear"><span class="dot green"></span>SSH</button>
+        <button class="type-pill" data-prefix="asn:" data-ph="AS15169 ..."><span class="dot blue"></span>ASN</button>
+        <button class="type-pill" data-prefix="keyword:" data-ph="admin, swagger ..."><span class="dot amber"></span>Keyword</button>
+        <button class="type-pill" data-prefix="username:" data-ph="johndoe ..."><span class="dot teal"></span>Username</button>
+        <button class="type-pill" data-prefix="" data-ph="user@example.com"><span class="dot blue"></span>Email</button>
+        <button class="type-pill" data-prefix="hash:" data-ph="favicon hash int"><span class="dot blue"></span>Hash</button>
+      </div>
+      <div id="builder-input-col">
+        <div id="input-row">
+          <span id="query-prefix"></span>
+          <input id="query-input" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="IP, domain, email, CVE, port:80 ..."/>
+          <button id="search-go" onclick="doSearch()">Search →</button>
+        </div>
+        <div id="modifier-row">
+          <div class="mod-sect">
+            <span class="mod-label">Sort</span>
+            <select class="mod-select" id="sort-select" onchange="doSearch()">
+              <option value="last_seen">Last seen</option>
+              <option value="first_seen">First seen</option>
+              <option value="country">Country</option>
+              <option value="org">Org</option>
+              <option value="ip">IP</option>
+              <option value="port_count">Port count</option>
+            </select>
+            <select class="mod-select" id="order-select" onchange="doSearch()" style="margin-left:4px;">
+              <option value="desc">↓ Desc</option>
+              <option value="asc">↑ Asc</option>
+            </select>
+          </div>
+          <div class="mod-sect">
+            <span class="mod-label">Per page</span>
+            <select class="mod-select" id="limit-select" onchange="doSearch()">
+              <option value="25">25</option>
+              <option value="50" selected>50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+          <div class="mod-sect">
+            <span class="mod-label">Country</span>
+            <input class="mod-input" id="f-country" placeholder="US, DE ..." style="width:68px;" onkeydown="if(event.key==='Enter')doSearch()"/>
+          </div>
+          <div class="mod-sect">
+            <span class="mod-label">Org</span>
+            <input class="mod-input" id="f-org" placeholder="Amazon ..." onkeydown="if(event.key==='Enter')doSearch()"/>
+          </div>
+          <div class="mod-sect">
+            <span class="mod-label">Port</span>
+            <input class="mod-input" id="f-port" placeholder="443" type="number" style="width:58px;" onkeydown="if(event.key==='Enter')doSearch()"/>
+          </div>
+          <div class="mod-sect">
+            <span class="mod-label">Tag</span>
+            <input class="mod-input" id="f-tag" placeholder="tag ..." onkeydown="if(event.key==='Enter')doSearch()"/>
+          </div>
+          <div class="mod-sect">
+            <button class="mod-toggle" id="toggle-vulns" onclick="toggleMod('vulns')">⚠ Vulns</button>
+            <button class="mod-toggle" id="toggle-http"  onclick="toggleMod('http')" style="margin-left:4px;">HTTP</button>
+            <button class="mod-toggle" id="toggle-ssh"   onclick="toggleMod('ssh')"  style="margin-left:4px;">SSH</button>
+          </div>
+          <div class="mod-sect">
+            <button class="mod-toggle" onclick="clearAll()">✕ Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toolbar">
+    <div class="status-wrap" id="status-left"></div>
+    <div class="toolbar-right">
+      <div id="status-right"></div>
+      <button class="tool-btn active" id="view-grid" onclick="setView('grid')">⊞ Grid</button>
+      <button class="tool-btn" id="view-list" onclick="setView('list')">☰ List</button>
+      <button id="export-btn" onclick="openExport()">↓ Export</button>
+    </div>
+  </div>
+
+  <div id="empty">
+    <div class="empty-icon">⌖</div>
+    <div class="empty-title" id="empty-title">Ready to search</div>
+    <div class="empty-sub" id="empty-sub">
+      Select a type on the left · type your query · hit Search<br><br>
+      port:9100 · CVE-2021-44228 · org:Amazon · tag:redis-noauth
+    </div>
+  </div>
+
+  <div id="results"></div>
+  <div id="load-more-wrap" style="display:none;">
+    <button id="load-more-btn" onclick="loadMore()">Load More</button>
+  </div>
+</div>
+
+<!-- Export modal -->
+<div id="export-modal" onclick="if(event.target===this)closeExport()">
+  <div id="export-panel">
+    <h2>↓ Export Results</h2>
+    <div class="export-info" id="export-info"></div>
+    <div class="export-opt">
+      <div><div class="export-opt-label">JSON</div><div class="export-opt-sub">Full data — all fields</div></div>
+      <button class="export-dl" onclick="exportData('json')">Download</button>
+    </div>
+    <div class="export-opt">
+      <div><div class="export-opt-label">CSV</div><div class="export-opt-sub">Flat table — IP, hostname, org, ports…</div></div>
+      <button class="export-dl green" onclick="exportData('csv')">Download</button>
+    </div>
+    <div class="export-opt">
+      <div><div class="export-opt-label">IPs only</div><div class="export-opt-sub">Plain text, one per line</div></div>
+      <button class="export-dl" onclick="exportData('ips')">Download</button>
+    </div>
+    <button id="export-close" onclick="closeExport()">Close</button>
+  </div>
+</div>
+
+<script>
+// ── Session-based key loading ─────────────────────────────────────────────────
+// API key held in memory only — never in localStorage (XSS risk)
+const API_BASE = 'https://api.hyperionosint.com';
+let   API_KEY  = null;
+
+const apiFetch = url => fetch(url, {
+  // Include key if available (for external/API users), but site works without it too
+  headers: API_KEY ? { 'X-Hyperion-Key': API_KEY } : {},
+});
+
+async function loadApiKey() {
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/me`, { credentials: 'include' });
+    if (res.ok) { const data = await res.json(); API_KEY = data?.key?.value || null; }
+  } catch {}
+}
+
+const VULN_PORTS = new Set([21,23,2375,3306,4444,5000,5432,6379,8888,9200,11211,27017]);
+
+let currentPage=1, currentTotal=0, currentPages=1;
+let currentQuery='', currentType='';
+let isLoading=false, appendMode=false;
+let exportBuffer=[];
+let modState={vulns:false,http:false,ssh:false};
+
+/* Background */
+const cv=document.getElementById('bg'),cx=cv.getContext('2d');
+cv.width=window.innerWidth;cv.height=window.innerHeight;
+for(let i=0;i<300;i++){
+  const x=Math.random()*cv.width,y=Math.random()*cv.height,r=Math.random()<0.05?0.9:0.4,a=0.02+Math.random()*0.07;
+  cx.beginPath();cx.arc(x,y,r,0,Math.PI*2);cx.fillStyle=`rgba(55,138,221,${a})`;cx.fill();
+}
+
+/* Type pills */
+document.querySelectorAll('.type-pill').forEach(pill=>{
+  pill.addEventListener('click',()=>{
+    document.querySelectorAll('.type-pill').forEach(p=>p.classList.remove('active'));
+    pill.classList.add('active');
+    const pfx=pill.dataset.prefix;
+    const el=document.getElementById('query-prefix');
+    el.textContent=pfx;
+    el.classList.toggle('show',!!pfx);
+    document.getElementById('query-input').placeholder=pill.dataset.ph;
+    document.getElementById('query-input').focus();
+  });
+});
+
+document.getElementById('query-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter')doSearch();
+});
+
+function toggleMod(key){
+  modState[key]=!modState[key];
+  const el=document.getElementById('toggle-'+key);
+  const cls={vulns:'red',http:'green',ssh:'green'}[key]||'';
+  el.classList.toggle('on',modState[key]);
+  if(modState[key])el.classList.add(cls);
+  else el.classList.remove(cls);
+  doSearch();
+}
+
+function clearAll(){
+  document.querySelectorAll('.type-pill').forEach(p=>p.classList.remove('active'));
+  document.querySelector('.type-pill[data-prefix=""]').classList.add('active');
+  document.getElementById('query-prefix').textContent='';
+  document.getElementById('query-prefix').classList.remove('show');
+  document.getElementById('query-input').value='';
+  document.getElementById('query-input').placeholder='IP, domain, email, CVE, port:80 ...';
+  ['f-country','f-org','f-tag','f-port'].forEach(id=>document.getElementById(id).value='');
+  Object.keys(modState).forEach(k=>{
+    modState[k]=false;
+    const el=document.getElementById('toggle-'+k);
+    el.classList.remove('on','red','green');
+  });
+  document.getElementById('results').innerHTML='';
+  document.getElementById('load-more-wrap').style.display='none';
+  document.getElementById('export-btn').classList.remove('visible');
+  setStatus('','');
+  document.getElementById('empty').style.display='block';
+  document.getElementById('empty-title').textContent='Ready to search';
+  document.getElementById('empty-sub').innerHTML='Select a type on the left · type your query · hit Search<br><br>port:9100 · CVE-2021-44228 · org:Amazon · tag:redis-noauth';
+}
+
+function buildQuery(){
+  const pill=document.querySelector('.type-pill.active');
+  const prefix=pill?pill.dataset.prefix:'';
+  const raw=document.getElementById('query-input').value.trim();
+  if(!raw)return null;
+  if(!prefix)return raw;
+  if(raw.toLowerCase().startsWith(prefix.toLowerCase()))return raw;
+  return prefix+raw;
+}
+
+function getFilters(){
+  const f={};
+  const country=document.getElementById('f-country').value.trim();
+  const org=document.getElementById('f-org').value.trim();
+  const tag=document.getElementById('f-tag').value.trim();
+  const port=document.getElementById('f-port').value.trim();
+  if(country)f.country=country;
+  if(org)f.org=org;
+  if(tag)f.tag=tag;
+  if(port)f.port=port;
+  if(modState.vulns)f.has_vulns='true';
+  if(modState.http)f.has_http='true';
+  if(modState.ssh)f.has_ssh='true';
+  return f;
+}
+
+async function doSearch(page=1){
+  const q=buildQuery();
+  if(!q){
+    document.getElementById('empty').style.display='block';
+    document.getElementById('empty-title').textContent='Enter a query';
+    document.getElementById('empty-sub').textContent='Type something above and hit Search';
+    return;
+  }
+  currentQuery=q;currentPage=page;appendMode=false;exportBuffer=[];
+  await fetchResults(page);
+}
+
+async function loadMore(){
+  if(isLoading||currentPage>=currentPages)return;
+  appendMode=true;
+  await fetchResults(currentPage+1);
+}
+
+async function fetchResults(page){
+  if(isLoading)return;
+  isLoading=true;
+  const q=currentQuery;
+  const params=new URLSearchParams({q,page,limit:document.getElementById('limit-select').value,sort:document.getElementById('sort-select').value,order:document.getElementById('order-select').value,...getFilters()});
+  setStatus('<span class="spinner"></span>Searching…','');
+  if(!appendMode){
+    document.getElementById('results').innerHTML='';
+    document.getElementById('empty').style.display='none';
+    document.getElementById('load-more-wrap').style.display='none';
+    document.getElementById('export-btn').classList.remove('visible');
+  }
+  try{
+    const res=await apiFetch(`${API_BASE}/api/search?${params}`);
+    if(res.status===403){
+      setStatus('Invalid or revoked API key — <a href="/account" style="color:rgba(133,183,235,0.7)">update on Account page</a>','');
+      isLoading=false;return;
+    }
+    const data=await res.json();
+    if(!res.ok){setStatus('Error: '+(data.detail||res.status),'');isLoading=false;return;}
+    currentPage=data.page||page;
+    currentTotal=data.total||0;
+    currentPages=data.pages||1;
+    currentType=data.type||'';
+    if(data.cards?.length)exportBuffer=appendMode?[...exportBuffer,...data.cards]:[...data.cards];
+    renderResults(data,appendMode);
+    renderStatus(data);
+    renderLoadMore(data);
+    if(exportBuffer.length)document.getElementById('export-btn').classList.add('visible');
+  }catch(e){setStatus('Connection error','');console.error(e);}
+  isLoading=false;
+}
+
+function renderResults(data,append){
+  const container=document.getElementById('results');
+  const cards=data.cards||[];
+  if(!append)container.innerHTML='';
+  if(!cards.length&&!append){
+    document.getElementById('empty').style.display='block';
+    document.getElementById('empty-title').textContent='No results found';
+    document.getElementById('empty-sub').textContent='Try a different query or adjust filters';
+    return;
+  }
+  document.getElementById('empty').style.display='none';
+  cards.forEach((card,i)=>{const el=buildCard(card,i);if(el)container.appendChild(el);});
+}
+
+function buildCard(card,index){
+  const isSummary=card.type==='rows'&&index===0;
+  const div=document.createElement('div');
+  div.className=`card color-${card.color||'blue'}${isSummary?' summary':''}`;
+  div.style.animationDelay=`${Math.min(index,20)*20}ms`;
+  const header=document.createElement('div');
+  header.className='card-header';
+  if(!isSummary)header.onclick=()=>div.classList.toggle('collapsed');
+  const title=document.createElement('div');
+  title.className='card-title';title.textContent=card.title||'—';
+  header.appendChild(title);
+  if(!isSummary){const a=document.createElement('span');a.className='card-arrow';a.textContent='▾';header.appendChild(a);}
+  div.appendChild(header);
+  const body=document.createElement('div');
+  body.className='card-body';
+  if(card.type==='ports'&&card.ports?.length){
+    const w=document.createElement('div');w.className='ports-wrap';
+    card.ports.forEach(p=>{const b=document.createElement('span');b.className=`port-badge${p.vuln?' vuln':''}`;b.textContent=p.port;b.onclick=e=>{e.stopPropagation();searchFor('port:'+p.port);};w.appendChild(b);});
+    body.appendChild(w);
+  }
+  if(card.type==='tags'&&card.tags?.length){
+    const w=document.createElement('div');w.className='tags-wrap';
+    card.tags.forEach(t=>{const b=document.createElement('span');b.className='tag-badge';b.textContent=t;b.onclick=()=>searchFor('tech:'+t);w.appendChild(b);});
+    body.appendChild(w);
+  }
+  if(card.type==='accounts'&&card.accounts?.length){
+    card.accounts.forEach(a=>{const r=document.createElement('div');r.className='account-row';r.innerHTML=`<span class="account-platform">${a.platform||'—'}</span><span class="account-handle">${a.handle||'—'}</span>${a.url&&a.url!=='—'?`<a class="account-link" href="${a.url}" target="_blank" rel="noopener">↗</a>`:''}`;body.appendChild(r);});
+  }
+  if(card.rows?.length){
+    card.rows.forEach(r=>{
+      if(r.val==='—')return;
+      const row=document.createElement('div');row.className='kv-row';
+      row.innerHTML=`<span class="kv-key">${r.key}</span><span class="kv-val ${r.cls||''}">${r.val}</span>`;
+      const v=row.querySelector('.kv-val');
+      if(['Org','ISP'].includes(r.key)){v.style.cursor='pointer';v.onclick=()=>searchFor('org:'+r.val);}
+      else if(r.key==='Country'){v.style.cursor='pointer';v.onclick=()=>searchFor('country:'+r.val);}
+      body.appendChild(row);
+    });
+  }
+  div.appendChild(body);
+  if(!isSummary&&card.title&&card.title!=='—'){title.style.cursor='pointer';title.onclick=e=>{e.stopPropagation();searchFor(card.title);};}
+  return div;
+}
+
+function setStatus(left,right){
+  document.getElementById('status-left').innerHTML=left;
+  document.getElementById('status-right').innerHTML=right;
+}
+
+function renderStatus(data){
+  const total=data.total||0,page=data.page||1,limit=data.limit||50,pages=data.pages||1;
+  const from=total>0?(page-1)*limit+1:0,to=Math.min(page*limit,total);
+  setStatus(
+    total>0?`<span class="status-pill"><b>${total.toLocaleString()}</b> results</span><span class="status-pill">showing <b>${from}–${to}</b></span><span class="status-pill">page <b>${page}</b> of <b>${pages}</b></span>`:`<span class="status-pill">0 results</span>`,
+    data.type?`<span class="status-pill">type: <b>${data.type}</b></span>`:''
+  );
+}
+
+function renderLoadMore(data){
+  const wrap=document.getElementById('load-more-wrap'),btn=document.getElementById('load-more-btn');
+  if(data.has_more&&(data.cards||[]).length){
+    wrap.style.display='flex';btn.disabled=false;
+    const rem=data.total-data.page*data.limit;
+    btn.textContent=`Load ${Math.min(rem,data.limit)} more (${rem.toLocaleString()} remaining)`;
+  }else{wrap.style.display='none';}
+}
+
+function searchFor(q){
+  document.querySelectorAll('.type-pill').forEach(p=>p.classList.remove('active'));
+  document.querySelector('.type-pill[data-prefix=""]').classList.add('active');
+  document.getElementById('query-prefix').textContent='';
+  document.getElementById('query-prefix').classList.remove('show');
+  document.getElementById('query-input').placeholder='IP, domain, email, CVE, port:80 ...';
+  document.getElementById('query-input').value=q;
+  currentQuery=q;doSearch();
+}
+
+function setView(m){
+  document.getElementById('view-grid').classList.toggle('active',m==='grid');
+  document.getElementById('view-list').classList.toggle('active',m==='list');
+  document.getElementById('results').classList.toggle('list-view',m==='list');
+}
+
+function openExport(){
+  const loaded=exportBuffer.length,total=currentTotal,hasMore=currentPage<currentPages;
+  document.getElementById('export-info').innerHTML=`<b>Query:</b> ${currentQuery}<br><b>Loaded:</b> ${loaded} cards · <b>Total:</b> ${total.toLocaleString()}<br>`+(hasMore?'<b>Note:</b> Use Load More to fetch more before exporting.':'<b>All results loaded.</b>');
+  document.getElementById('export-modal').classList.add('open');
+}
+function closeExport(){document.getElementById('export-modal').classList.remove('open');}
+
+function exportData(format){
+  const q=currentQuery.replace(/[^a-zA-Z0-9_\-:.]/g,'_').slice(0,40);
+  const ts=new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+  const fn=`hyperion_${q}_${ts}`;
+  if(format==='json'){
+    dl(fn+'.json',JSON.stringify({query:currentQuery,type:currentType,total:currentTotal,exported:exportBuffer.length,exported_at:new Date().toISOString(),cards:exportBuffer},null,2),'application/json');
+  }else if(format==='csv'){
+    const h=['ip','hostname','org','isp','country','city','asn','ports','port_count','tags','vulns','http_title','tls_version','first_seen','last_seen'];
+    const rows=[h.join(',')];
+    exportBuffer.forEach(card=>{
+      if(!card.ports&&!card.rows)return;
+      const t=card.title||'';
+      if(!/^\d{1,3}(\.\d{1,3}){3}$/.test(t)&&!card.ports)return;
+      const m={};(card.rows||[]).forEach(r=>{m[r.key]=r.val==='—'?'':r.val;});
+      rows.push([t,m.Hostname||'',m.Org||'',m.ISP||'',m.Country||'',m.City||'',m.ASN||'',(card.ports||[]).map(p=>p.port).join(';'),m['Port Count']||'',m.Tags||'',m.Vulns||'',m.Title||'',m['TLS Version']||'',m['First Seen']||'',m['Last Seen']||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+    });
+    dl(fn+'.csv',rows.join('\n'),'text/csv');
+  }else{
+    const ips=exportBuffer.filter(c=>/^\d{1,3}(\.\d{1,3}){3}$/.test(c.title||'')).map(c=>c.title);
+    dl(fn+'_ips.txt',ips.join('\n'),'text/plain');
+  }
+  closeExport();
+}
+
+function dl(filename,content,mime){
+  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([content],{type:mime})),download:filename});
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+}
+
+window.addEventListener('DOMContentLoaded', async ()=>{
+  await loadApiKey();
+  const q=new URLSearchParams(window.location.search).get('q');
+  if(q){document.getElementById('query-input').value=q;currentQuery=q;doSearch();}
+  else{document.getElementById('empty').style.display='block';}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeExport();});
+</script>
+</body>
+</html>

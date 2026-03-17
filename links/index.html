@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HYPERION — Links</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --blue:#378ADD;--blue-dim:rgba(55,138,221,0.2);
+    --bg:#020d1a;--surface:rgba(4,20,42,0.85);--text:rgba(230,241,251,0.95);
+    --muted:rgba(180,210,244,0.45);--dim:rgba(180,210,244,0.2);
+  }
+  html,body{width:100%;min-height:100%;background:var(--bg);font-family:'Syne',sans-serif;color:var(--text);}
+
+  #bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+  #scanline{
+    position:fixed;top:0;left:0;right:0;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(55,138,221,0.08),transparent);
+    z-index:3;pointer-events:none;animation:scan 14s linear infinite;
+  }
+  @keyframes scan{0%{top:-2px;opacity:0;}3%{opacity:1;}97%{opacity:1;}100%{top:100vh;opacity:0;}}
+
+  #topbar{
+    position:fixed;top:0;left:0;right:0;z-index:20;
+    background:rgba(2,13,26,0.9);backdrop-filter:blur(16px);
+    border-bottom:0.5px solid var(--blue-dim);
+    padding:0 40px;height:56px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  #logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:300;letter-spacing:0.2em;color:var(--text);text-decoration:none;text-transform:uppercase;}
+  #topnav{display:flex;align-items:center;gap:40px;}
+  .topnav-link{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.28em;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+  .topnav-link:hover,.topnav-link.active{color:rgba(133,183,235,1);}
+  .topnav-sep{width:1px;height:12px;background:var(--blue-dim);}
+
+  /* Avatar */
+  #avatar-btn{
+    width:34px;height:34px;border-radius:50%;
+    border:1.5px solid var(--blue-dim);
+    background:rgba(55,138,221,0.12);
+    cursor:pointer;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    transition:border-color 0.25s,box-shadow 0.25s;
+    text-decoration:none;flex-shrink:0;
+  }
+  #avatar-btn:hover{border-color:rgba(55,138,221,0.7);box-shadow:0 0 12px rgba(55,138,221,0.35);}
+  #avatar-icon{width:16px;height:16px;opacity:0.45;fill:rgba(133,183,235,0.8);}
+
+  #main{
+    position:relative;z-index:10;
+    padding:110px 40px 80px;
+    max-width:780px;margin:0 auto;
+  }
+
+  #page-title{font-size:42px;font-weight:300;letter-spacing:0.08em;color:#fff;margin-bottom:48px;}
+
+  .section{margin-bottom:48px;}
+  .section-label{
+    font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:0.3em;
+    color:rgba(255,255,255,0.5);text-transform:uppercase;
+    margin-bottom:16px;padding-bottom:10px;
+    border-bottom:0.5px solid var(--blue-dim);
+  }
+
+  .link-card{
+    display:flex;align-items:center;gap:20px;
+    background:var(--surface);border:0.5px solid var(--blue-dim);border-radius:4px;
+    padding:20px 24px;margin-bottom:10px;text-decoration:none;
+    transition:border-color 0.2s, background 0.2s;cursor:pointer;
+    animation:cardIn 0.4s ease forwards;opacity:0;
+  }
+  .link-card:hover{border-color:rgba(55,138,221,0.5);background:rgba(4,28,58,0.9);}
+  @keyframes cardIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .link-icon{
+    width:38px;height:38px;border-radius:3px;flex-shrink:0;
+    background:rgba(55,138,221,0.08);border:0.5px solid var(--blue-dim);
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+  }
+  .link-info{flex:1;}
+  .link-name{font-size:19px;font-weight:400;color:#fff;margin-bottom:6px;letter-spacing:0.02em;}
+  .link-desc{font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:0.05em;color:rgba(255,255,255,0.5);}
+  .link-arrow{font-family:'Share Tech Mono',monospace;font-size:20px;color:rgba(255,255,255,0.3);transition:color 0.2s, transform 0.2s;}
+  .link-card:hover .link-arrow{color:var(--blue);transform:translateX(4px);}
+
+  .status-dot{
+    display:inline-block;width:7px;height:7px;border-radius:50%;
+    margin-right:8px;vertical-align:middle;transition:background 0.4s, box-shadow 0.4s;
+  }
+  .status-dot.green{background:#1D9E75;box-shadow:0 0 6px rgba(29,158,117,0.5);}
+  .status-dot.amber{background:#EF9F27;box-shadow:0 0 6px rgba(239,159,39,0.5);}
+  .status-dot.red{background:#E24B4A;box-shadow:0 0 6px rgba(226,75,74,0.5);}
+  .status-dot.checking{background:rgba(180,210,244,0.3);box-shadow:none;animation:pulse 1s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:0.3;}50%{opacity:1;}}
+
+  .status-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:14px 0;border-bottom:0.5px solid rgba(55,138,221,0.06);
+    font-family:'Share Tech Mono',monospace;font-size:15px;
+  }
+  .status-row:last-child{border-bottom:none;}
+  .status-name{color:rgba(255,255,255,0.7);letter-spacing:0.06em;}
+  .status-val{letter-spacing:0.08em;color:#fff;transition:color 0.4s;}
+  .status-val.green{color:#1D9E75;}
+  .status-val.amber{color:#EF9F27;}
+  .status-val.red{color:#E24B4A;}
+  .status-val.dim{color:var(--dim);}
+
+  .status-card{
+    background:var(--surface);border:0.5px solid var(--blue-dim);border-radius:4px;
+    padding:20px 24px;margin-bottom:10px;animation:cardIn 0.4s ease forwards;opacity:0;
+  }
+
+  .contact-form{
+    background:var(--surface);border:0.5px solid var(--blue-dim);border-radius:4px;
+    padding:24px;animation:cardIn 0.4s ease forwards;opacity:0;
+  }
+  .form-row{margin-bottom:16px;}
+  .form-label{
+    font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:0.2em;
+    color:rgba(255,255,255,0.5);text-transform:uppercase;display:block;margin-bottom:8px;
+  }
+  .form-input,.form-textarea{
+    width:100%;background:rgba(2,13,26,0.8);border:0.5px solid var(--blue-dim);
+    border-radius:3px;padding:13px 16px;
+    font-family:'Share Tech Mono',monospace;font-size:15px;letter-spacing:0.05em;
+    color:#fff;outline:none;transition:border-color 0.2s;caret-color:var(--blue);
+  }
+  .form-input:focus,.form-textarea:focus{border-color:rgba(55,138,221,0.5);}
+  .form-textarea{resize:vertical;min-height:100px;}
+  .form-input::placeholder,.form-textarea::placeholder{color:var(--dim);}
+  .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+
+  .submit-btn{
+    background:rgba(55,138,221,0.1);border:0.5px solid rgba(55,138,221,0.35);
+    border-radius:3px;padding:14px 32px;
+    font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:0.2em;
+    color:#fff;text-transform:uppercase;cursor:pointer;transition:background 0.2s,border-color 0.2s;
+  }
+  .submit-btn:hover{background:rgba(55,138,221,0.18);border-color:rgba(55,138,221,0.6);}
+  .submit-btn:disabled{opacity:0.5;cursor:not-allowed;}
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<div id="scanline"></div>
+
+<div id="topbar">
+  <a href="/" id="logo">Hyperion</a>
+  <nav id="topnav">
+    <a href="/search" class="topnav-link">Search</a>
+    <div class="topnav-sep"></div>
+    <a href="/world" class="topnav-link">World View</a>
+    <div class="topnav-sep"></div>
+    <a href="/links" class="topnav-link active">Links</a>
+    <div class="topnav-sep"></div>
+    <a href="/docs" class="topnav-link">Docs</a>
+    <div class="topnav-sep"></div>
+    <a id="avatar-btn" href="/account" title="Account">
+      <svg id="avatar-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+      </svg>
+    </a>
+  </nav>
+</div>
+
+<div id="main">
+  <div id="page-title">Links &amp; Resources</div>
+
+  <!-- Community -->
+  <div class="section">
+    <div class="section-label">Community</div>
+
+    <a href="https://discord.gg/3vVKur4uB9" target="_blank" class="link-card" style="animation-delay:0ms;">
+      <div class="link-icon">
+        <svg width="18" height="14" viewBox="0 0 18 14" fill="none"><path d="M15.25 1.25A14.9 14.9 0 0 0 11.5 0c-.17.3-.37.7-.5 1a13.8 13.8 0 0 0-4 0C6.87.7 6.67.3 6.5 0A14.9 14.9 0 0 0 2.75 1.25 15.73 15.73 0 0 0 .1 11.3a15.1 15.1 0 0 0 4.56 2.2c.37-.48.7-1 .98-1.54a9.7 9.7 0 0 1-1.54-.71c.13-.09.25-.18.37-.28a10.8 10.8 0 0 0 9.06 0c.12.1.25.19.37.28-.5.28-1 .52-1.54.71.28.54.6 1.06.98 1.54a15.06 15.06 0 0 0 4.56-2.2A15.68 15.68 0 0 0 15.25 1.25ZM6 9.25C5.07 9.25 4.3 8.4 4.3 7.37s.75-1.87 1.7-1.87c.96 0 1.72.85 1.7 1.87 0 1.03-.74 1.88-1.7 1.88Zm6 0c-.95 0-1.71-.85-1.71-1.88 0-1.02.74-1.87 1.7-1.87.97 0 1.72.85 1.7 1.87 0 1.03-.73 1.88-1.7 1.88Z" fill="rgba(133,183,235,0.7)"/></svg>
+      </div>
+      <div class="link-info">
+        <div class="link-name">Discord Server</div>
+        <div class="link-desc">Join the community — discuss, report issues, share findings</div>
+      </div>
+      <div class="link-arrow">→</div>
+    </a>
+
+    <a href="https://github.com/cdt4" target="_blank" class="link-card" style="animation-delay:60ms;">
+      <div class="link-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z" fill="rgba(133,183,235,0.7)"/></svg>
+      </div>
+      <div class="link-info">
+        <div class="link-name">GitHub</div>
+        <div class="link-desc">Source code, releases, and open issues</div>
+      </div>
+      <div class="link-arrow">→</div>
+    </a>
+  </div>
+
+  <!-- Status -->
+  <div class="section">
+    <div class="section-label">System Status</div>
+    <div class="status-card" style="animation-delay:100ms;">
+      <div class="status-row">
+        <div class="status-name"><span class="status-dot checking" id="dot-api"></span>Search API</div>
+        <div class="status-val dim" id="val-api">Checking...</div>
+      </div>
+      <div class="status-row">
+        <div class="status-name"><span class="status-dot checking" id="dot-db"></span>Database</div>
+        <div class="status-val dim" id="val-db">Checking...</div>
+      </div>
+      <div class="status-row">
+        <div class="status-name"><span class="status-dot checking" id="dot-scanner"></span>Scanner Infrastructure</div>
+        <div class="status-val dim" id="val-scanner">Checking...</div>
+      </div>
+      <div class="status-row">
+        <div class="status-name"><span class="status-dot amber" id="dot-world"></span>World View Feed</div>
+        <div class="status-val amber" id="val-world">In Development</div>
+      </div>
+      <div class="status-row" style="border-bottom:none;padding-top:16px;margin-top:8px;border-top:0.5px solid rgba(55,138,221,0.08);">
+        <div class="status-name" style="color:var(--dim);">Last checked</div>
+        <div class="status-val dim" id="last-checked">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact -->
+  <div class="section">
+    <div class="section-label">Contact &amp; Abuse Reports</div>
+    <div class="contact-form" style="animation-delay:200ms;">
+      <div class="form-row-2">
+        <div>
+          <label class="form-label">Subject</label>
+          <select class="form-input" id="form-subject" style="cursor:pointer;">
+            <option value="" style="background:#020d1a;">Select a reason</option>
+            <option style="background:#020d1a;">Abuse Report</option>
+            <option style="background:#020d1a;">Data Removal Request</option>
+            <option style="background:#020d1a;">Bug Report</option>
+            <option style="background:#020d1a;">General Enquiry</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Your Email</label>
+          <input class="form-input" id="form-email" type="email" placeholder="your@email.com"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Message</label>
+        <textarea class="form-textarea" id="form-message" placeholder="Describe your issue or request..."></textarea>
+      </div>
+      <button class="submit-btn" id="submit-btn" onclick="handleSubmit()">Send Message →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Session-based key loading ─────────────────────────────────────────────────
+const API_BASE = 'https://api.hyperionosint.com';
+
+// No key needed — site requests are allowed by the backend via Origin header
+const apiFetch = (url) => fetch(url, { signal: AbortSignal.timeout(5000) });
+
+// ── Background dots ───────────────────────────────────────────────────────────
+const bgCanvas = document.getElementById('bg');
+const bgCtx    = bgCanvas.getContext('2d');
+bgCanvas.width  = window.innerWidth;
+bgCanvas.height = window.innerHeight;
+const dots = Array.from({length:250},()=>({
+  x:Math.random()*bgCanvas.width, y:Math.random()*bgCanvas.height,
+  r:Math.random()<0.05?0.9:0.4, a:0.03+Math.random()*0.08
+}));
+dots.forEach(d=>{
+  bgCtx.beginPath(); bgCtx.arc(d.x,d.y,d.r,0,Math.PI*2);
+  bgCtx.fillStyle=`rgba(55,138,221,${d.a})`; bgCtx.fill();
+});
+
+// ── Status check ──────────────────────────────────────────────────────────────
+function setStatus(dotId, valId, state, text) {
+  const dot = document.getElementById(dotId);
+  const val = document.getElementById(valId);
+  dot.className = `status-dot ${state}`;
+  val.className = `status-val ${state === 'checking' ? 'dim' : state}`;
+  val.textContent = text;
+}
+
+async function checkStatus() {
+  document.getElementById('last-checked').textContent = new Date().toUTCString().replace('GMT','UTC');
+
+  try {
+    const res = await apiFetch(`${API_BASE}/api/stats`);
+    if (res.ok) {
+      const data = await res.json();
+      setStatus('dot-api', 'val-api', 'green', 'Operational');
+      setStatus('dot-db',  'val-db',  'green', 'Operational');
+      setStatus('dot-scanner', 'val-scanner', data.ips > 0 ? 'green' : 'amber', data.ips > 0 ? 'Operational' : 'No Data Yet');
+    } else if (res.status === 403) {
+      setStatus('dot-api',     'val-api',     'red',   'Invalid API key');
+      setStatus('dot-db',      'val-db',      'amber', 'Unknown');
+      setStatus('dot-scanner', 'val-scanner', 'amber', 'Unknown');
+    } else {
+      setStatus('dot-api',     'val-api',     'red',   'Degraded');
+      setStatus('dot-db',      'val-db',      'amber', 'Unknown');
+      setStatus('dot-scanner', 'val-scanner', 'amber', 'Unknown');
+    }
+  } catch (e) {
+    setStatus('dot-api',     'val-api',     'red', 'Offline');
+    setStatus('dot-db',      'val-db',      'red', 'Offline');
+    setStatus('dot-scanner', 'val-scanner', 'red', 'Offline');
+  }
+}
+
+checkStatus();
+setInterval(checkStatus, 30000);
+
+// ── Contact form ──────────────────────────────────────────────────────────────
+function handleSubmit() {
+  const subject = document.getElementById('form-subject').value.trim();
+  const email   = document.getElementById('form-email').value.trim();
+  const message = document.getElementById('form-message').value.trim();
+  const btn     = document.getElementById('submit-btn');
+
+  if (!email || !message) {
+    btn.textContent = 'Fill in all fields →';
+    setTimeout(() => { btn.textContent = 'Send Message →'; }, 2000);
+    return;
+  }
+
+  const mailSubject = subject || 'Hyperion Contact';
+  const mailBody    = `From: ${email}\n\n${message}`;
+
+  window.location.href = `mailto:abuse@hyperionosint.com`
+    + `?subject=${encodeURIComponent(mailSubject)}`
+    + `&body=${encodeURIComponent(mailBody)}`;
+
+  btn.textContent = 'Opening mail client...';
+  setTimeout(() => { btn.textContent = 'Send Message →'; }, 3000);
+}
+</script>
+</body>
+</html>
