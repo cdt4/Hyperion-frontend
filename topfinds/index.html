@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HYPERION — Top 50</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --blue:#378ADD;--blue-dim:rgba(55,138,221,0.2);--blue-glow:rgba(55,138,221,0.08);
+  --bg:#020d1a;--surface:rgba(4,20,42,0.85);--surface2:rgba(4,20,42,0.5);
+  --text:rgba(230,241,251,0.95);--muted:rgba(180,210,244,0.85);--dim:rgba(180,210,244,0.55);
+  --green:#1D9E75;--amber:#EF9F27;--red:#E24B4A;--teal:#2BB5C8;
+}
+html{font-size:150%;}
+html,body{width:100%;min-height:100%;background:var(--bg);font-family:'Syne',sans-serif;color:var(--text);}
+
+#scanline{position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(55,138,221,0.08),transparent);z-index:3;pointer-events:none;animation:scan 14s linear infinite;}
+@keyframes scan{0%{top:-2px;opacity:0;}3%{opacity:1;}97%{opacity:1;}100%{top:100vh;opacity:0;}}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+/* ── Topbar ── */
+#topbar{position:fixed;top:0;left:0;right:0;z-index:20;background:rgba(2,13,26,0.9);backdrop-filter:blur(16px);border-bottom:0.5px solid var(--blue-dim);padding:0 40px;height:56px;display:flex;align-items:center;justify-content:space-between;}
+#logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:300;letter-spacing:0.2em;color:var(--text);text-decoration:none;text-transform:uppercase;}
+#topnav{display:flex;align-items:center;gap:40px;}
+.topnav-link{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.28em;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+.topnav-link:hover,.topnav-link.active{color:rgba(133,183,235,1);}
+.topnav-sep{width:1px;height:12px;background:var(--blue-dim);}
+#avatar-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(55,138,221,0.7);box-shadow:0 0 12px rgba(55,138,221,0.35);background:rgba(55,138,221,0.12);cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;}
+#avatar-icon{width:16px;height:16px;opacity:0.7;fill:rgba(133,183,235,0.8);}
+
+/* ── Main layout ── */
+#main{position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:88px 40px 120px;}
+
+/* ── Page header ── */
+.page-header{margin-bottom:32px;animation:fadeUp 0.4s ease both;}
+.page-title-row{display:flex;align-items:baseline;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:8px;}
+.page-title{font-size:32px;font-weight:300;letter-spacing:0.08em;color:#fff;}
+.page-subtitle{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.25em;color:var(--dim);text-transform:uppercase;margin-top:6px;}
+.last-updated{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.15em;color:var(--dim);}
+.last-updated em{color:var(--muted);font-style:normal;}
+
+/* ── Summary stats ── */
+.summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;animation:fadeUp 0.4s ease 0.05s both;}
+.summary-card{background:var(--surface);border:0.5px solid var(--blue-dim);border-radius:4px;padding:16px 20px;}
+.summary-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.25em;color:var(--dim);text-transform:uppercase;margin-bottom:8px;}
+.summary-value{font-family:'Share Tech Mono',monospace;font-size:24px;color:#fff;letter-spacing:0.04em;}
+.summary-value.red{color:var(--red);}
+.summary-value.amber{color:var(--amber);}
+.summary-value.green{color:var(--green);}
+.summary-value.blue{color:var(--blue);}
+
+/* ── Toolbar ── */
+#toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;animation:fadeUp 0.4s ease 0.1s both;}
+.filter-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.filter-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.25em;color:var(--dim);text-transform:uppercase;}
+.filter-btn{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;background:var(--surface2);border:0.5px solid var(--blue-dim);padding:7px 14px;border-radius:2px;cursor:pointer;transition:all 0.2s;}
+.filter-btn:hover{color:var(--text);border-color:rgba(55,138,221,0.4);}
+.filter-btn.active{color:#fff;background:rgba(55,138,221,0.14);border-color:rgba(55,138,221,0.45);}
+.filter-btn.cat-breach.active{color:var(--red);background:rgba(226,75,74,0.1);border-color:rgba(226,75,74,0.35);}
+.filter-btn.cat-data.active{color:var(--amber);background:rgba(239,159,39,0.1);border-color:rgba(239,159,39,0.35);}
+.filter-btn.cat-persistence.active{color:var(--teal);background:rgba(43,181,200,0.1);border-color:rgba(43,181,200,0.35);}
+.filter-btn.cat-worth.active{color:var(--green);background:rgba(29,158,117,0.1);border-color:rgba(29,158,117,0.35);}
+.toolbar-right{display:flex;align-items:center;gap:10px;}
+.result-count{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.15em;color:var(--dim);}
+.result-count em{color:var(--muted);font-style:normal;}
+#refresh-btn{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;background:var(--surface2);border:0.5px solid var(--blue-dim);padding:7px 14px;border-radius:2px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;}
+#refresh-btn:hover{color:var(--text);border-color:rgba(55,138,221,0.4);}
+#refresh-btn.spinning .spin-icon{animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spin-icon{display:inline-block;}
+
+/* ── Results grid ── */
+#results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:10px;}
+
+/* ── Host card ── */
+.host-card{background:var(--surface);border:0.5px solid var(--blue-dim);border-radius:4px;overflow:hidden;animation:fadeUp 0.3s ease both;transition:border-color 0.2s;}
+.host-card:hover{border-color:rgba(55,138,221,0.4);}
+.host-card.rank-top{border-left:2px solid var(--red);}
+.host-card.rank-high{border-left:2px solid var(--amber);}
+.host-card.rank-mid{border-left:2px solid var(--blue);}
+
+.card-head{padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-bottom:0.5px solid rgba(55,138,221,0.06);gap:10px;}
+.card-head:hover{background:var(--blue-glow);}
+.card-head-left{display:flex;align-items:center;gap:14px;min-width:0;}
+.rank-badge{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.1em;color:var(--dim);flex-shrink:0;width:28px;}
+.host-ip{font-family:'Share Tech Mono',monospace;font-size:14px;color:#fff;letter-spacing:0.06em;white-space:nowrap;}
+.host-hostname{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:0.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;margin-top:2px;}
+.card-head-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.overall-score{font-family:'Share Tech Mono',monospace;font-size:16px;font-weight:400;letter-spacing:0.04em;color:#fff;}
+.overall-score .denom{font-size:11px;color:var(--dim);}
+.card-chevron{font-size:12px;color:var(--dim);transition:transform 0.2s;}
+.host-card.collapsed .card-chevron{transform:rotate(-90deg);}
+
+/* Score bars */
+.score-bars{display:flex;gap:6px;padding:12px 18px;border-bottom:0.5px solid rgba(55,138,221,0.06);}
+.score-bar-item{flex:1;display:flex;flex-direction:column;gap:5px;}
+.score-bar-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.2em;color:var(--dim);text-transform:uppercase;}
+.score-bar-track{height:3px;background:rgba(55,138,221,0.1);border-radius:2px;overflow:hidden;}
+.score-bar-fill{height:100%;border-radius:2px;transition:width 0.6s ease;}
+.score-bar-fill.breach{background:var(--red);}
+.score-bar-fill.data{background:var(--amber);}
+.score-bar-fill.persistence{background:var(--teal);}
+.score-bar-fill.worth{background:var(--green);}
+.score-bar-val{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);}
+
+/* Chip row */
+.chip-row{display:flex;flex-wrap:wrap;gap:5px;padding:10px 18px;border-bottom:0.5px solid rgba(55,138,221,0.06);}
+.chip{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.08em;padding:3px 8px;border-radius:2px;border:0.5px solid;}
+.chip.breach{color:var(--red);background:rgba(226,75,74,0.08);border-color:rgba(226,75,74,0.25);}
+.chip.data{color:var(--amber);background:rgba(239,159,39,0.08);border-color:rgba(239,159,39,0.25);}
+.chip.persistence{color:var(--teal);background:rgba(43,181,200,0.08);border-color:rgba(43,181,200,0.25);}
+.chip.worth{color:var(--green);background:rgba(29,158,117,0.08);border-color:rgba(29,158,117,0.25);}
+.chip.info{color:var(--muted);background:rgba(55,138,221,0.06);border-color:var(--blue-dim);}
+
+/* Expanded body */
+.card-body{padding:4px 18px 16px;}
+.host-card.collapsed .card-body{display:none;}
+
+.meta-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:0.5px solid rgba(55,138,221,0.04);font-family:'Share Tech Mono',monospace;font-size:12px;}
+.meta-row:last-child{border-bottom:none;}
+.meta-key{color:var(--dim);letter-spacing:0.12em;flex-shrink:0;margin-right:16px;}
+.meta-val{color:rgba(200,225,250,0.9);text-align:right;word-break:break-all;}
+.meta-val.blue{color:rgba(133,183,235,0.95);}
+
+.ports-wrap{display:flex;flex-wrap:wrap;gap:5px;padding:10px 0 4px;}
+.port-badge{font-family:'Share Tech Mono',monospace;font-size:11px;padding:3px 8px;border-radius:2px;background:rgba(29,158,117,0.1);border:0.5px solid rgba(29,158,117,0.25);color:var(--green);cursor:pointer;transition:background 0.15s;}
+.port-badge:hover{background:rgba(29,158,117,0.2);}
+
+.reasons-section{margin-top:12px;}
+.reasons-cat{margin-bottom:10px;}
+.reasons-cat-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;margin-bottom:5px;padding:2px 0;}
+.reasons-cat-label.breach{color:var(--red);}
+.reasons-cat-label.data{color:var(--amber);}
+.reasons-cat-label.persistence{color:var(--teal);}
+.reasons-cat-label.worth{color:var(--green);}
+.reason-item{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);padding:3px 0 3px 12px;border-left:1.5px solid;letter-spacing:0.04em;line-height:1.5;}
+.reason-item.breach{border-color:rgba(226,75,74,0.3);}
+.reason-item.data{border-color:rgba(239,159,39,0.3);}
+.reason-item.persistence{border-color:rgba(43,181,200,0.3);}
+.reason-item.worth{border-color:rgba(29,158,117,0.3);}
+
+.card-actions{display:flex;gap:6px;padding-top:14px;border-top:0.5px solid rgba(55,138,221,0.06);margin-top:12px;}
+.card-action-btn{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;background:var(--surface2);border:0.5px solid var(--blue-dim);padding:6px 12px;border-radius:2px;cursor:pointer;transition:all 0.2s;text-decoration:none;}
+.card-action-btn:hover{color:var(--text);border-color:rgba(55,138,221,0.4);}
+.no-deep-warn{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--amber);letter-spacing:0.1em;padding:8px 0 2px;opacity:0.8;}
+
+/* ── Empty / loading ── */
+#empty-state{text-align:center;padding:80px 40px;font-family:'Share Tech Mono',monospace;color:var(--muted);letter-spacing:0.15em;display:none;}
+.empty-icon{font-size:28px;margin-bottom:16px;opacity:0.25;}
+.empty-title{font-size:14px;text-transform:uppercase;margin-bottom:8px;color:var(--dim);}
+.empty-sub{font-size:11px;opacity:0.6;line-height:1.9;}
+
+/* ── Toast ── */
+#toast{position:fixed;bottom:32px;right:32px;z-index:200;font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.12em;background:rgba(4,20,42,0.98);border:0.5px solid var(--blue-dim);border-radius:3px;padding:12px 20px;color:var(--text);opacity:0;transform:translateY(8px);transition:opacity 0.2s,transform 0.2s;pointer-events:none;}
+#toast.show{opacity:1;transform:translateY(0);}
+#toast.green{border-color:rgba(29,158,117,0.5);color:var(--green);}
+#toast.red{border-color:rgba(226,75,74,0.5);color:var(--red);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+@media(max-width:700px){
+  #topbar{padding:0 16px;}
+  #main{padding:76px 16px 80px;}
+  .summary-row{grid-template-columns:1fr 1fr;}
+  #results-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<div id="scanline"></div>
+
+<div id="topbar">
+  <a href="/" id="logo">Hyperion</a>
+  <nav id="topnav">
+    <a href="/search" class="topnav-link">Search</a>
+    <div class="topnav-sep"></div>
+    <a href="/world" class="topnav-link">World View</a>
+    <div class="topnav-sep"></div>
+    <a href="/links" class="topnav-link">Links</a>
+    <div class="topnav-sep"></div>
+    <a href="/docs" class="topnav-link">Docs</a>
+    <div class="topnav-sep"></div>
+    <a id="avatar-btn" href="/account" title="Account">
+      <svg id="avatar-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    </a>
+  </nav>
+</div>
+
+<div id="main">
+
+  <div class="page-header">
+    <div class="page-title-row">
+      <div>
+        <div class="page-title">Top 50 Hosts</div>
+        <div class="page-subtitle">Highest scoring hosts currently in the database</div>
+      </div>
+      <div class="last-updated" id="last-updated">—</div>
+    </div>
+  </div>
+
+  <div class="summary-row" id="summary-row">
+    <div class="summary-card">
+      <div class="summary-label">Critical (8+)</div>
+      <div class="summary-value red" id="stat-critical">—</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">High (6–8)</div>
+      <div class="summary-value amber" id="stat-high">—</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Missing Deep Data</div>
+      <div class="summary-value blue" id="stat-nodeep">—</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Returned</div>
+      <div class="summary-value green" id="stat-total">—</div>
+    </div>
+  </div>
+
+  <div id="toolbar">
+    <div class="filter-group">
+      <span class="filter-label">Sort by</span>
+      <button class="filter-btn active" data-sort="overall" onclick="setSort(this)">Overall</button>
+      <button class="filter-btn cat-breach" data-sort="breach" onclick="setSort(this)">Breach</button>
+      <button class="filter-btn cat-data" data-sort="data" onclick="setSort(this)">Data</button>
+      <button class="filter-btn cat-persistence" data-sort="persistence" onclick="setSort(this)">Persistence</button>
+      <button class="filter-btn cat-worth" data-sort="worth" onclick="setSort(this)">Worth</button>
+    </div>
+    <div class="toolbar-right">
+      <div class="result-count" id="result-count"></div>
+      <button id="refresh-btn" onclick="loadFinds()">
+        <span class="spin-icon">↻</span> Refresh
+      </button>
+    </div>
+  </div>
+
+  <div id="empty-state">
+    <div class="empty-icon">—</div>
+    <div class="empty-title" id="empty-title">Loading...</div>
+    <div class="empty-sub" id="empty-sub">Fetching top 50 from the database</div>
+  </div>
+
+  <div id="results-grid"></div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API_BASE = 'https://api.hyperionosint.com';
+
+let allFinds = [];
+let sortMode = 'overall';
+
+const cv  = document.getElementById('bg');
+const ctx = cv.getContext('2d');
+cv.width  = window.innerWidth;
+cv.height = window.innerHeight;
+Array.from({length:250},()=>({
+  x:Math.random()*cv.width, y:Math.random()*cv.height,
+  r:Math.random()<0.05?0.9:0.4, a:0.03+Math.random()*0.08
+})).forEach(d=>{
+  ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+  ctx.fillStyle=`rgba(55,138,221,${d.a})`; ctx.fill();
+});
+
+async function loadFinds() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+  document.getElementById('empty-state').style.display = 'block';
+  document.getElementById('empty-title').textContent   = 'Loading...';
+  document.getElementById('empty-sub').textContent     = 'Fetching top 50 from the database';
+  document.getElementById('results-grid').innerHTML    = '';
+  setStats(null);
+
+  try {
+    const res  = await fetch(`${API_BASE}/api/juicy?limit=50`, { credentials: 'include' });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    allFinds   = data.results || [];
+    renderAll();
+    updateLastUpdated();
+  } catch(e) {
+    document.getElementById('empty-title').textContent = 'Failed to load';
+    document.getElementById('empty-sub').textContent   = 'Check your connection or try refreshing';
+    showToast('Failed to load', 'red');
+  } finally {
+    btn.classList.remove('spinning');
+  }
+}
+
+function renderAll() {
+  const sorted = [...allFinds].sort((a,b) => {
+    if (sortMode === 'overall') return b.overall - a.overall;
+    return (b.scores?.[sortMode] || 0) - (a.scores?.[sortMode] || 0);
+  });
+
+  const grid = document.getElementById('results-grid');
+  grid.innerHTML = '';
+
+  if (!sorted.length) {
+    document.getElementById('empty-state').style.display = 'block';
+    document.getElementById('empty-title').textContent   = 'No results';
+    document.getElementById('empty-sub').textContent     = 'No scored hosts found in the database';
+    return;
+  }
+
+  document.getElementById('empty-state').style.display = 'none';
+
+  sorted.forEach((host, i) => {
+    const el = buildCard(host, i + 1);
+    el.style.animationDelay = `${Math.min(i, 30) * 25}ms`;
+    grid.appendChild(el);
+  });
+
+  setStats(sorted);
+  document.getElementById('result-count').innerHTML = `Showing <em>${sorted.length}</em> of top 50`;
+}
+
+function setStats(sorted) {
+  if (!sorted) {
+    ['stat-critical','stat-high','stat-nodeep','stat-total'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+    });
+    return;
+  }
+  document.getElementById('stat-critical').textContent = sorted.filter(h => h.overall >= 8).length;
+  document.getElementById('stat-high').textContent     = sorted.filter(h => h.overall >= 6 && h.overall < 8).length;
+  document.getElementById('stat-nodeep').textContent   = sorted.filter(h => !h.has_deep).length;
+  document.getElementById('stat-total').textContent    = sorted.length;
+}
+
+function updateLastUpdated() {
+  const now = new Date();
+  document.getElementById('last-updated').innerHTML =
+    `Updated <em>${now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</em>`;
+}
+
+function buildCard(host, rank) {
+  const div       = document.createElement('div');
+  const rankClass = host.overall >= 8 ? 'rank-top' : host.overall >= 6 ? 'rank-high' : 'rank-mid';
+  div.className   = `host-card ${rankClass}`;
+
+  const scores  = host.scores  || {};
+  const reasons = host.reasons || {};
+
+  // Header
+  const head = document.createElement('div');
+  head.className = 'card-head';
+  head.onclick   = () => toggleCard(div);
+
+  const headLeft = document.createElement('div');
+  headLeft.className = 'card-head-left';
+  headLeft.innerHTML = `
+    <span class="rank-badge">#${rank}</span>
+    <div>
+      <div class="host-ip">${host.ip}</div>
+      ${host.hostname ? `<div class="host-hostname">${host.hostname}</div>` : ''}
+    </div>`;
+
+  const headRight = document.createElement('div');
+  headRight.className = 'card-head-right';
+  headRight.innerHTML = `
+    <span class="overall-score">${host.overall}<span class="denom">/10</span></span>
+    <span class="card-chevron">▾</span>`;
+
+  head.appendChild(headLeft);
+  head.appendChild(headRight);
+  div.appendChild(head);
+
+  // Score bars
+  const bars = document.createElement('div');
+  bars.className = 'score-bars';
+  [
+    {key:'breach',      label:'Breach',  cls:'breach'},
+    {key:'data',        label:'Data',    cls:'data'},
+    {key:'persistence', label:'Persist', cls:'persistence'},
+    {key:'worth',       label:'Worth',   cls:'worth'},
+  ].forEach(({key,label,cls}) => {
+    const val = scores[key] || 0;
+    bars.innerHTML += `
+      <div class="score-bar-item">
+        <div class="score-bar-label">${label}</div>
+        <div class="score-bar-track">
+          <div class="score-bar-fill ${cls}" style="width:${val*10}%"></div>
+        </div>
+        <div class="score-bar-val">${val}/10</div>
+      </div>`;
+  });
+  div.appendChild(bars);
+
+  // Chips
+  const chipRow = document.createElement('div');
+  chipRow.className = 'chip-row';
+
+  const allReasons = [
+    ...(reasons.breach      || []).slice(0,2).map(r => ({text:r, cat:'breach'})),
+    ...(reasons.data        || []).slice(0,1).map(r => ({text:r, cat:'data'})),
+    ...(reasons.persistence || []).slice(0,1).map(r => ({text:r, cat:'persistence'})),
+  ].slice(0, 4);
+
+  if (host.org)     chipRow.innerHTML += `<span class="chip info">${host.org.slice(0,28)}</span>`;
+  if (host.country) chipRow.innerHTML += `<span class="chip info">${host.country}</span>`;
+  allReasons.forEach(({text, cat}) => {
+    const short = text.length > 35 ? text.slice(0, 32) + '…' : text;
+    chipRow.innerHTML += `<span class="chip ${cat}">${short}</span>`;
+  });
+
+  div.appendChild(chipRow);
+
+  // Expanded body — collapsed by default
+  div.classList.add('collapsed');
+
+  const body = document.createElement('div');
+  body.className = 'card-body';
+
+  [
+    {key:'IP',       val:host.ip,       cls:'blue'},
+    {key:'Hostname', val:host.hostname},
+    {key:'Org',      val:host.org},
+    {key:'Country',  val:host.city ? `${host.city}, ${host.country}` : host.country},
+    {key:'ASN',      val:host.asn},
+    {key:'Tech',     val:(host.tech||[]).slice(0,6).join(', ')},
+  ].forEach(({key,val,cls}) => {
+    if (!val) return;
+    const row = document.createElement('div');
+    row.className = 'meta-row';
+    row.innerHTML = `<span class="meta-key">${key}</span><span class="meta-val ${cls||''}">${val}</span>`;
+    body.appendChild(row);
+  });
+
+  if (host.ports && host.ports.length) {
+    const wrap = document.createElement('div');
+    wrap.className = 'ports-wrap';
+    host.ports.forEach(p => {
+      const b = document.createElement('span');
+      b.className   = 'port-badge';
+      b.textContent = p;
+      b.onclick     = e => { e.stopPropagation(); searchIP(host.ip); };
+      wrap.appendChild(b);
+    });
+    body.appendChild(wrap);
+  }
+
+  const cats = [
+    {key:'breach',      label:'Breach',      cls:'breach'},
+    {key:'data',        label:'Data',        cls:'data'},
+    {key:'persistence', label:'Persistence', cls:'persistence'},
+    {key:'worth',       label:'Worth',       cls:'worth'},
+  ];
+
+  const hasAny = cats.some(c => (reasons[c.key]||[]).length > 0);
+  if (hasAny) {
+    const section = document.createElement('div');
+    section.className = 'reasons-section';
+    cats.forEach(({key, label, cls}) => {
+      const list = reasons[key] || [];
+      if (!list.length) return;
+      const catEl = document.createElement('div');
+      catEl.className = 'reasons-cat';
+      catEl.innerHTML = `<div class="reasons-cat-label ${cls}">${label}</div>`;
+      list.forEach(r => {
+        const item = document.createElement('div');
+        item.className = `reason-item ${cls}`;
+        item.textContent = r;
+        catEl.appendChild(item);
+      });
+      section.appendChild(catEl);
+    });
+    body.appendChild(section);
+  }
+
+  if (!host.has_deep) {
+    const warn = document.createElement('div');
+    warn.className   = 'no-deep-warn';
+    warn.textContent = 'No deep enrichment data — scores may be incomplete';
+    body.appendChild(warn);
+  }
+
+  const actions = document.createElement('div');
+  actions.className = 'card-actions';
+  actions.innerHTML = `
+    <a class="card-action-btn" href="/search?q=${encodeURIComponent(host.ip)}" target="_blank">View in Search</a>
+    <button class="card-action-btn" onclick="copyIP('${host.ip}')">Copy IP</button>`;
+  body.appendChild(actions);
+
+  div.appendChild(body);
+  return div;
+}
+
+function toggleCard(card) {
+  card.classList.toggle('collapsed');
+}
+
+function setSort(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  sortMode = btn.dataset.sort;
+  renderAll();
+}
+
+function searchIP(ip) {
+  window.open(`/search?q=${encodeURIComponent(ip)}`, '_blank');
+}
+
+function copyIP(ip) {
+  navigator.clipboard.writeText(ip).then(() => showToast('IP copied', 'green'));
+}
+
+let _toastTimer;
+function showToast(msg, cls='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'show ' + cls;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { t.className = ''; }, 2800);
+}
+
+window.addEventListener('DOMContentLoaded', loadFinds);
+</script>
+</body>
+</html>
