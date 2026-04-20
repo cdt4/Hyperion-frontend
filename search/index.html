@@ -5,15 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HYPERION — Search</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@300;400;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
   --blue:#378ADD;--blue-dim:rgba(55,138,221,0.18);
   --bg:#020d1a;--surface:rgba(4,20,42,0.9);--surface2:rgba(6,26,54,0.7);
-  --text:rgba(230,241,251,0.95);--muted:rgba(180,210,244,0.45);--dim:rgba(180,210,244,0.2);
+  --text:rgba(230,241,251,0.95);--muted:rgba(180,210,244,0.55);--dim:rgba(180,210,244,0.25);
   --green:#1D9E75;--amber:#EF9F27;--red:#E24B4A;--teal:#2ab8c4;
 }
-html{font-size:150%;}
+html{font-size:175%;}
 html,body{width:100%;min-height:100%;background:var(--bg);font-family:'Syne',sans-serif;color:var(--text);}
 
 #bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
@@ -21,79 +23,83 @@ html,body{width:100%;min-height:100%;background:var(--bg);font-family:'Syne',san
 @keyframes scan{0%{top:-2px;opacity:0;}3%{opacity:1;}97%{opacity:1;}100%{top:100vh;opacity:0;}}
 
 /* ── Topbar ── */
-#topbar{position:fixed;top:0;left:0;right:0;z-index:20;background:rgba(2,13,26,0.92);backdrop-filter:blur(20px);border-bottom:0.5px solid var(--blue-dim);padding:0 40px;height:56px;display:flex;align-items:center;justify-content:space-between;}
-#logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:300;letter-spacing:0.2em;color:var(--text);text-decoration:none;text-transform:uppercase;}
+#topbar{position:fixed;top:0;left:0;right:0;z-index:20;background:rgba(2,13,26,0.92);backdrop-filter:blur(20px);border-bottom:0.5px solid var(--blue-dim);padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+#logo{font-family:'Syne',sans-serif;font-size:19px;font-weight:300;letter-spacing:0.2em;color:var(--text);text-decoration:none;text-transform:uppercase;}
 #topnav{display:flex;align-items:center;gap:40px;}
-.topnav-link{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.28em;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+.topnav-link{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.28em;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
 .topnav-link:hover,.topnav-link.active{color:rgba(133,183,235,1);}
-.topnav-sep{width:1px;height:12px;background:var(--blue-dim);}
-#avatar-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--blue-dim);background:rgba(55,138,221,0.12);cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:border-color 0.25s,box-shadow 0.25s;text-decoration:none;flex-shrink:0;}
+.topnav-sep{width:1px;height:13px;background:var(--blue-dim);}
+#avatar-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--blue-dim);background:rgba(55,138,221,0.12);cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:border-color 0.25s,box-shadow 0.25s;text-decoration:none;flex-shrink:0;}
 #avatar-btn:hover{border-color:rgba(55,138,221,0.7);box-shadow:0 0 12px rgba(55,138,221,0.35);}
-#avatar-icon{width:16px;height:16px;opacity:0.45;fill:rgba(133,183,235,0.8);}
+#avatar-icon{width:17px;height:17px;opacity:0.45;fill:rgba(133,183,235,0.8);}
 
 /* ── Main ── */
-#main{position:relative;z-index:10;padding:88px 40px 120px;max-width:1100px;margin:0 auto;}
+#main{position:relative;z-index:10;padding:92px 40px 120px;max-width:1100px;margin:0 auto;}
 
 /* ══════════════════════════════
    SEARCH BUILDER
 ══════════════════════════════ */
 #search-builder{border:0.5px solid var(--blue-dim);border-radius:6px;background:var(--surface);margin-bottom:20px;}
-#builder-top{position:relative;min-height:140px;border-bottom:0.5px solid var(--blue-dim);}
-#type-selector{position:absolute;top:0;left:0;bottom:0;width:150px;overflow-y:auto;border-right:0.5px solid var(--blue-dim);scrollbar-width:thin;scrollbar-color:var(--blue-dim) transparent;}
+#builder-top{position:relative;min-height:148px;border-bottom:0.5px solid var(--blue-dim);}
+#type-selector{position:absolute;top:0;left:0;bottom:0;width:158px;overflow-y:auto;border-right:0.5px solid var(--blue-dim);scrollbar-width:thin;scrollbar-color:var(--blue-dim) transparent;}
 #type-selector::-webkit-scrollbar{width:3px;}
 #type-selector::-webkit-scrollbar-thumb{background:var(--blue-dim);border-radius:2px;}
-.type-pill{display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;border:none;background:none;text-align:left;transition:background 0.15s,color 0.15s;border-bottom:0.5px solid rgba(55,138,221,0.05);white-space:nowrap;}
+.type-pill{display:flex;align-items:center;gap:8px;width:100%;padding:11px 14px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;border:none;background:none;text-align:left;transition:background 0.15s,color 0.15s;border-bottom:0.5px solid rgba(55,138,221,0.05);white-space:nowrap;}
 .type-pill:last-child{border-bottom:none;}
 .type-pill:hover{background:rgba(55,138,221,0.07);color:var(--text);}
 .type-pill.active{background:rgba(55,138,221,0.14);color:#fff;}
-.type-pill .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;opacity:0.4;transition:opacity 0.15s;}
+.type-pill .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;opacity:0.4;transition:opacity 0.15s;}
 .type-pill.active .dot{opacity:1;}
 .dot.blue{background:var(--blue);}
 .dot.green{background:var(--green);}
 .dot.red{background:var(--red);}
 .dot.amber{background:var(--amber);}
 .dot.teal{background:var(--teal);}
-#builder-input-col{margin-left:150px;display:flex;flex-direction:column;min-height:140px;}
-#input-row{display:flex;align-items:stretch;flex:1;min-height:80px;}
-#query-prefix{display:flex;align-items:center;font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--blue);padding:0 0 0 20px;white-space:nowrap;letter-spacing:0.05em;opacity:0;transition:opacity 0.2s;}
+#builder-input-col{margin-left:158px;display:flex;flex-direction:column;min-height:148px;}
+#input-row{display:flex;align-items:stretch;flex:1;min-height:86px;}
+#query-prefix{display:flex;align-items:center;font-family:'Share Tech Mono',monospace;font-size:16px;color:var(--blue);padding:0 0 0 20px;white-space:nowrap;letter-spacing:0.05em;opacity:0;transition:opacity 0.2s;}
 #query-prefix.show{opacity:1;}
-#query-input{flex:1;background:transparent;border:none;outline:none;font-family:'Share Tech Mono',monospace;font-size:14px;letter-spacing:0.04em;color:var(--text);padding:0 16px;caret-color:var(--blue);min-width:0;}
+#query-input{flex:1;background:transparent;border:none;outline:none;font-family:'Share Tech Mono',monospace;font-size:17px;letter-spacing:0.04em;color:var(--text);padding:0 16px;caret-color:var(--blue);min-width:0;}
 #query-input::placeholder{color:var(--dim);}
-#search-go{flex-shrink:0;background:rgba(55,138,221,0.1);border:none;border-left:0.5px solid var(--blue-dim);padding:0 28px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.2em;color:var(--blue);text-transform:uppercase;cursor:pointer;transition:background 0.2s,color 0.2s;white-space:nowrap;border-radius:0 6px 0 0;}
+#search-go{flex-shrink:0;background:rgba(55,138,221,0.1);border:none;border-left:0.5px solid var(--blue-dim);padding:0 28px;font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:0.2em;color:var(--blue);text-transform:uppercase;cursor:pointer;transition:background 0.2s,color 0.2s;white-space:nowrap;border-radius:0 6px 0 0;}
 #search-go:hover{background:rgba(55,138,221,0.22);color:#fff;}
-#modifier-row{display:flex;align-items:center;border-top:0.5px solid rgba(55,138,221,0.08);min-height:42px;overflow-x:auto;scrollbar-width:none;}
+#modifier-row{display:flex;align-items:center;border-top:0.5px solid rgba(55,138,221,0.08);min-height:44px;overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--blue-dim) transparent;}
 #modifier-row::-webkit-scrollbar{display:none;}
-.mod-sect{display:flex;align-items:center;gap:6px;border-right:0.5px solid rgba(55,138,221,0.08);padding:0 12px;height:42px;flex-shrink:0;}
+.mod-sect{display:flex;align-items:center;gap:6px;border-right:0.5px solid rgba(55,138,221,0.08);padding:0 12px;height:44px;flex-shrink:0;}
 .mod-sect:last-child{border-right:none;margin-left:auto;}
-.mod-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.2em;color:var(--dim);text-transform:uppercase;white-space:nowrap;flex-shrink:0;}
-.mod-toggle{display:flex;align-items:center;padding:3px 9px;border-radius:2px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.1em;color:var(--muted);background:none;border:0.5px solid transparent;transition:all 0.15s;white-space:nowrap;text-transform:uppercase;}
+.mod-label{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.2em;color:var(--dim);text-transform:uppercase;white-space:nowrap;flex-shrink:0;}
+.mod-toggle{display:flex;align-items:center;padding:4px 10px;border-radius:2px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.1em;color:var(--muted);background:none;border:0.5px solid transparent;transition:all 0.15s;white-space:nowrap;text-transform:uppercase;}
 .mod-toggle:hover{border-color:var(--blue-dim);color:var(--text);}
 .mod-toggle.on{background:rgba(55,138,221,0.12);border-color:rgba(55,138,221,0.4);color:#fff;}
 .mod-toggle.on.green{background:rgba(29,158,117,0.1);border-color:rgba(29,158,117,0.3);color:var(--green);}
 .mod-toggle.on.red{background:rgba(226,75,74,0.1);border-color:rgba(226,75,74,0.3);color:var(--red);}
-.mod-input{background:rgba(2,13,26,0.6);border:0.5px solid var(--blue-dim);border-radius:2px;padding:3px 8px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text);outline:none;width:80px;caret-color:var(--blue);transition:border-color 0.15s;}
+.mod-input{background:rgba(2,13,26,0.6);border:0.5px solid var(--blue-dim);border-radius:2px;padding:4px 8px;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--text);outline:none;width:80px;caret-color:var(--blue);transition:border-color 0.15s;}
 .mod-input:focus{border-color:rgba(55,138,221,0.5);}
 .mod-input::placeholder{color:var(--dim);}
-.mod-select{background:rgba(2,13,26,0.6);border:0.5px solid var(--blue-dim);border-radius:2px;padding:3px 8px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);outline:none;cursor:pointer;}
+.mod-select{background:rgba(2,13,26,0.6);border:0.5px solid var(--blue-dim);border-radius:2px;padding:4px 8px;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--muted);outline:none;cursor:pointer;}
 .mod-select option{background:#020d1a;}
 
 /* ── Toolbar ── */
 #toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
 .status-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .toolbar-right{display:flex;align-items:center;gap:8px;}
-.status-pill{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:0.5px solid var(--blue-dim);border-radius:3px;padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.12em;color:var(--muted);}
+.status-pill{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:0.5px solid var(--blue-dim);border-radius:3px;padding:4px 11px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.12em;color:var(--muted);}
 .status-pill b{color:var(--text);}
-.tool-btn{background:var(--surface2);border:0.5px solid var(--blue-dim);border-radius:3px;padding:5px 12px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.12em;color:var(--muted);cursor:pointer;transition:all 0.2s;text-transform:uppercase;}
+.tool-btn{background:var(--surface2);border:0.5px solid var(--blue-dim);border-radius:3px;padding:6px 13px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.12em;color:var(--muted);cursor:pointer;transition:all 0.2s;text-transform:uppercase;}
 .tool-btn:hover,.tool-btn.active{background:rgba(55,138,221,0.1);border-color:rgba(55,138,221,0.35);color:var(--text);}
-#export-btn{display:none;align-items:center;gap:6px;background:rgba(29,158,117,0.08);border:0.5px solid rgba(29,158,117,0.3);border-radius:3px;padding:5px 14px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.12em;color:var(--green);text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+#export-btn{display:none;align-items:center;gap:6px;background:rgba(29,158,117,0.08);border:0.5px solid rgba(29,158,117,0.3);border-radius:3px;padding:6px 15px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.12em;color:var(--green);text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
 #export-btn:hover{background:rgba(29,158,117,0.15);color:#fff;}
 #export-btn.visible{display:flex;}
+#topfinds-btn{background:var(--surface2);border:0.5px solid var(--blue-dim);border-radius:3px;padding:6px 13px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;text-decoration:none;transition:all 0.2s;display:inline-flex;align-items:center;}
+#topfinds-btn:hover{background:rgba(55,138,221,0.1);border-color:rgba(55,138,221,0.35);color:var(--text);}
 
 /* ── Results ── */
 #results{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
 #results.list-view{grid-template-columns:1fr;}
 .card{background:var(--surface);border:0.5px solid var(--blue-dim);border-radius:4px;overflow:hidden;animation:cardIn 0.25s ease forwards;opacity:0;transition:border-color 0.2s,transform 0.15s;}
 .card:hover{border-color:rgba(55,138,221,0.4);transform:translateY(-1px);}
+.card.clickable{cursor:pointer;}
+.card.clickable:hover .card-title{color:rgba(133,183,235,1);}
 @keyframes cardIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
 .card.color-blue{border-left:2px solid var(--blue);}
 .card.color-green{border-left:2px solid var(--green);}
@@ -102,13 +108,23 @@ html,body{width:100%;min-height:100%;background:var(--bg);font-family:'Syne',san
 .card.color-teal{border-left:2px solid var(--teal);}
 .card.summary{border-left:none;border-top:2px solid var(--blue);}
 .card.summary .card-header{cursor:default;}
-.card-header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid rgba(55,138,221,0.06);cursor:pointer;}
-.card-title{font-size:14px;font-weight:400;letter-spacing:0.04em;color:#fff;font-family:'Share Tech Mono',monospace;}
-.card-arrow{font-size:12px;color:var(--muted);transition:transform 0.2s;}
+.card.map-card{border-left:none;border-top:2px solid var(--blue);grid-column:1 / -1;}
+
+/* ── Mini map inside card ── */
+.card-mini-map{position:relative;height:130px;width:100%;overflow:hidden;border-bottom:0.5px solid var(--blue-dim);cursor:pointer;}
+.card-mini-map .mini-map-el{height:100%;width:100%;pointer-events:none;}
+.card-mini-map .mini-map-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 55%,rgba(2,13,26,0.6) 100%);pointer-events:none;z-index:1;}
+.card-mini-map .mini-map-coords{position:absolute;bottom:7px;right:9px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.1em;color:rgba(180,210,244,0.6);z-index:2;pointer-events:none;}
+.card-mini-map .mini-map-expand{position:absolute;top:7px;right:7px;background:rgba(2,13,26,0.75);border:0.5px solid var(--blue-dim);border-radius:2px;padding:3px 7px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.1em;color:var(--muted);z-index:2;pointer-events:none;}
+
+.card-header{padding:15px 17px 11px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid rgba(55,138,221,0.06);cursor:pointer;}
+.card-title{font-size:16px;font-weight:400;letter-spacing:0.04em;color:#fff;font-family:'Share Tech Mono',monospace;}
+.card-arrow{font-size:14px;color:var(--muted);transition:transform 0.2s;}
 .card.collapsed .card-arrow{transform:rotate(-90deg);}
-.card-body{padding:0 16px 14px;}
+.card-body{padding:0 17px 15px;}
 .card.collapsed .card-body{display:none;}
-.kv-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:0.5px solid rgba(55,138,221,0.04);font-family:'Share Tech Mono',monospace;font-size:11px;}
+.card.collapsed .card-mini-map{display:none;}
+.kv-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:0.5px solid rgba(55,138,221,0.04);font-family:'Share Tech Mono',monospace;font-size:13px;}
 .kv-row:last-child{border-bottom:none;}
 .kv-key{color:var(--muted);letter-spacing:0.08em;flex-shrink:0;margin-right:12px;}
 .kv-val{color:var(--text);text-align:right;word-break:break-all;letter-spacing:0.04em;}
@@ -117,31 +133,75 @@ html,body{width:100%;min-height:100%;background:var(--bg);font-family:'Syne',san
 .kv-val.red{color:var(--red);}
 .kv-val.amber{color:var(--amber);}
 .kv-val.dim{color:var(--dim);}
-.ports-wrap{padding:10px 0;display:flex;flex-wrap:wrap;gap:5px;}
-.port-badge{font-family:'Share Tech Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;cursor:pointer;background:rgba(29,158,117,0.1);border:0.5px solid rgba(29,158,117,0.25);color:var(--green);transition:background 0.15s;}
+.ports-wrap{padding:11px 0;display:flex;flex-wrap:wrap;gap:6px;}
+.port-badge{font-family:'Share Tech Mono',monospace;font-size:12px;padding:5px 10px;border-radius:2px;cursor:pointer;background:rgba(29,158,117,0.1);border:0.5px solid rgba(29,158,117,0.25);color:var(--green);transition:background 0.15s;}
 .port-badge:hover{background:rgba(29,158,117,0.2);}
 .port-badge.vuln{background:rgba(226,75,74,0.1);border-color:rgba(226,75,74,0.3);color:var(--red);}
-.tags-wrap{padding:10px 0;display:flex;flex-wrap:wrap;gap:5px;}
-.tag-badge{font-family:'Share Tech Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;cursor:pointer;background:rgba(55,138,221,0.08);border:0.5px solid var(--blue-dim);color:var(--muted);transition:all 0.15s;}
+.tags-wrap{padding:11px 0;display:flex;flex-wrap:wrap;gap:6px;}
+.tag-badge{font-family:'Share Tech Mono',monospace;font-size:12px;padding:5px 10px;border-radius:2px;cursor:pointer;background:rgba(55,138,221,0.08);border:0.5px solid var(--blue-dim);color:var(--muted);transition:all 0.15s;}
 .tag-badge:hover{background:rgba(55,138,221,0.15);color:var(--text);}
-.account-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:0.5px solid rgba(55,138,221,0.04);font-family:'Share Tech Mono',monospace;font-size:11px;}
+.account-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid rgba(55,138,221,0.04);font-family:'Share Tech Mono',monospace;font-size:13px;}
 .account-row:last-child{border-bottom:none;}
-.account-platform{color:var(--muted);width:80px;flex-shrink:0;}
+.account-platform{color:var(--muted);width:84px;flex-shrink:0;}
 .account-handle{color:var(--text);}
-.account-link{color:var(--blue);text-decoration:none;font-size:11px;margin-left:auto;opacity:0.7;}
+.account-link{color:var(--blue);text-decoration:none;font-size:13px;margin-left:auto;opacity:0.7;}
 .account-link:hover{opacity:1;}
+
+.emails-wrap{padding:9px 0;display:flex;flex-direction:column;gap:1px;}
+.email-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid rgba(55,138,221,0.04);font-family:'Share Tech Mono',monospace;font-size:13px;}
+.email-row:last-child{border-bottom:none;}
+.email-addr{color:var(--teal);letter-spacing:0.03em;word-break:break-all;}
+.email-copy{background:none;border:0.5px solid transparent;border-radius:2px;padding:3px 8px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.1em;color:var(--dim);cursor:pointer;transition:all 0.15s;flex-shrink:0;margin-left:10px;text-transform:uppercase;}
+.email-copy:hover{border-color:var(--blue-dim);color:var(--muted);}
+.email-copy.copied{color:var(--green);border-color:rgba(29,158,117,0.3);}
+
+/* ── Exposed files ── */
+.findings-wrap{padding:9px 0;display:flex;flex-direction:column;gap:1px;}
+.finding-row{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:0.5px solid rgba(55,138,221,0.04);font-family:'Share Tech Mono',monospace;font-size:12px;}
+.finding-row:last-child{border-bottom:none;}
+.finding-status{flex-shrink:0;padding:3px 7px;border-radius:2px;font-size:11px;letter-spacing:0.08em;}
+.finding-status.s200{background:rgba(226,75,74,0.12);border:0.5px solid rgba(226,75,74,0.3);color:var(--red);}
+.finding-status.s403{background:rgba(239,159,39,0.1);border:0.5px solid rgba(239,159,39,0.25);color:var(--amber);}
+.finding-status.s401{background:rgba(239,159,39,0.1);border:0.5px solid rgba(239,159,39,0.25);color:var(--amber);}
+.finding-status.sother{background:rgba(55,138,221,0.08);border:0.5px solid var(--blue-dim);color:var(--muted);}
+.finding-path{color:var(--text);word-break:break-all;flex:1;}
+.finding-snippet{display:block;color:var(--dim);font-size:11px;margin-top:3px;letter-spacing:0.03em;white-space:pre-wrap;word-break:break-all;}
+
+/* ── JS findings ── */
+.jsfinding-row{padding:8px 0;border-bottom:0.5px solid rgba(55,138,221,0.04);font-family:'Share Tech Mono',monospace;font-size:12px;}
+.jsfinding-row:last-child{border-bottom:none;}
+.jsfinding-file{color:var(--muted);font-size:11px;letter-spacing:0.04em;word-break:break-all;margin-bottom:4px;}
+.jsfinding-item{display:flex;align-items:baseline;gap:6px;margin-top:2px;}
+.jsfinding-label{color:var(--dim);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;flex-shrink:0;width:74px;}
+.jsfinding-val{color:var(--amber);word-break:break-all;}
+
+/* ── Map card (full width, single IP) ── */
+.map-card .card-header{cursor:default;}
+.map-card .card-body{padding:0;}
+.map-coords{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.12em;color:var(--dim);}
+
+/* ── Leaflet overrides ── */
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#020d1a!important;border:0.5px solid rgba(55,138,221,0.3)!important;box-shadow:none!important;border-radius:3px!important;}
+.leaflet-popup-content{color:rgba(230,241,251,0.95)!important;font-family:'Share Tech Mono',monospace!important;font-size:12px!important;margin:9px 13px!important;line-height:1.7;}
+.leaflet-container{background:#010810!important;}
+.leaflet-control-zoom a{background:#04142a!important;border-color:rgba(55,138,221,0.25)!important;color:rgba(180,210,244,0.7)!important;}
+.leaflet-control-zoom a:hover{background:rgba(55,138,221,0.15)!important;color:#fff!important;}
+.leaflet-control-attribution{display:none!important;}
+/* disable all controls on mini maps */
+.mini-map-el .leaflet-control-container{display:none!important;}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:0.8;}100%{transform:scale(3.5);opacity:0;}}
 
 /* ── Empty ── */
 #empty{text-align:center;padding:80px 40px;display:none;font-family:'Share Tech Mono',monospace;color:var(--muted);letter-spacing:0.15em;}
 #empty .empty-icon{font-size:32px;margin-bottom:16px;opacity:0.3;}
-#empty .empty-title{font-size:14px;text-transform:uppercase;margin-bottom:8px;}
-#empty .empty-sub{font-size:10px;opacity:0.6;line-height:1.9;}
+#empty .empty-title{font-size:15px;text-transform:uppercase;margin-bottom:8px;}
+#empty .empty-sub{font-size:11px;opacity:0.6;line-height:1.9;}
 .spinner{display:inline-block;width:13px;height:13px;border:1.5px solid var(--blue-dim);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 /* ── Load more ── */
 #load-more-wrap{display:flex;justify-content:center;margin-top:32px;}
-#load-more-btn{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.18em;padding:14px 48px;border-radius:3px;cursor:pointer;background:rgba(55,138,221,0.08);border:0.5px solid rgba(55,138,221,0.3);color:var(--blue);text-transform:uppercase;transition:all 0.2s;}
+#load-more-btn{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.18em;padding:15px 50px;border-radius:3px;cursor:pointer;background:rgba(55,138,221,0.08);border:0.5px solid rgba(55,138,221,0.3);color:var(--blue);text-transform:uppercase;transition:all 0.2s;}
 #load-more-btn:hover{background:rgba(55,138,221,0.16);color:#fff;}
 #load-more-btn:disabled{opacity:0.3;cursor:not-allowed;}
 
@@ -149,28 +209,30 @@ html,body{width:100%;min-height:100%;background:var(--bg);font-family:'Syne',san
 #export-modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(2,13,26,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
 #export-modal.open{display:flex;}
 #export-panel{background:var(--surface);border:0.5px solid rgba(55,138,221,0.4);border-radius:6px;padding:32px;min-width:340px;max-width:460px;width:90%;}
-#export-panel h2{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.25em;color:var(--blue);text-transform:uppercase;margin-bottom:20px;}
-.export-opt{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:0.5px solid rgba(55,138,221,0.08);}
+#export-panel h2{font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:0.25em;color:var(--blue);text-transform:uppercase;margin-bottom:20px;}
+.export-opt{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:0.5px solid rgba(55,138,221,0.08);}
 .export-opt:last-of-type{border-bottom:none;margin-bottom:16px;}
-.export-opt-label{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.1em;color:var(--text);}
-.export-opt-sub{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;}
-.export-dl{background:rgba(55,138,221,0.1);border:0.5px solid var(--blue-dim);border-radius:3px;padding:5px 14px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.12em;color:var(--blue);text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+.export-opt-label{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:0.1em;color:var(--text);}
+.export-opt-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
+.export-dl{background:rgba(55,138,221,0.1);border:0.5px solid var(--blue-dim);border-radius:3px;padding:6px 15px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.12em;color:var(--blue);text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
 .export-dl:hover{background:rgba(55,138,221,0.2);color:#fff;}
 .export-dl.green{background:rgba(29,158,117,0.1);border-color:rgba(29,158,117,0.3);color:var(--green);}
 .export-dl.green:hover{background:rgba(29,158,117,0.2);color:#fff;}
-#export-close{width:100%;padding:9px;background:none;border:0.5px solid var(--blue-dim);border-radius:3px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;cursor:pointer;transition:all 0.2s;margin-top:6px;}
+#export-close{width:100%;padding:10px;background:none;border:0.5px solid var(--blue-dim);border-radius:3px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;cursor:pointer;transition:all 0.2s;margin-top:6px;}
 #export-close:hover{border-color:rgba(55,138,221,0.4);color:var(--text);}
-.export-info{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.08em;color:var(--dim);margin-bottom:16px;line-height:1.7;background:rgba(55,138,221,0.04);border:0.5px solid rgba(55,138,221,0.1);border-radius:3px;padding:10px 12px;}
+.export-info{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.08em;color:var(--dim);margin-bottom:16px;line-height:1.7;background:rgba(55,138,221,0.04);border:0.5px solid rgba(55,138,221,0.1);border-radius:3px;padding:10px 12px;}
 .export-info b{color:var(--muted);}
 
 @media(max-width:680px){
-  #main{padding:76px 16px 80px;}
+  #main{padding:80px 16px 80px;}
   #topbar{padding:0 16px;}
   #builder-top{min-height:auto;}
   #type-selector{position:static;width:100%;border-right:none;border-bottom:0.5px solid var(--blue-dim);display:flex;flex-direction:row;overflow-x:auto;overflow-y:hidden;}
   #type-selector::-webkit-scrollbar{display:none;}
   .type-pill{flex-shrink:0;border-bottom:none;border-right:0.5px solid rgba(55,138,221,0.08);}
   #builder-input-col{margin-left:0;}
+  #leaflet-map-container{height:260px;}
+  .card-mini-map{height:100px;}
 }
 </style>
 </head>
@@ -251,7 +313,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);font-family:'Syne',san
           </div>
           <div class="mod-sect">
             <span class="mod-label">Country</span>
-            <input class="mod-input" id="f-country" placeholder="US, DE ..." style="width:68px;" onkeydown="if(event.key==='Enter')doSearch()"/>
+            <input class="mod-input" id="f-country" placeholder="US, DE ..." style="width:72px;" onkeydown="if(event.key==='Enter')doSearch()"/>
           </div>
           <div class="mod-sect">
             <span class="mod-label">Org</span>
@@ -259,19 +321,19 @@ html,body{width:100%;min-height:100%;background:var(--bg);font-family:'Syne',san
           </div>
           <div class="mod-sect">
             <span class="mod-label">Port</span>
-            <input class="mod-input" id="f-port" placeholder="443" type="number" style="width:58px;" onkeydown="if(event.key==='Enter')doSearch()"/>
+            <input class="mod-input" id="f-port" placeholder="443" type="number" style="width:62px;" onkeydown="if(event.key==='Enter')doSearch()"/>
           </div>
           <div class="mod-sect">
             <span class="mod-label">Tag</span>
             <input class="mod-input" id="f-tag" placeholder="tag ..." onkeydown="if(event.key==='Enter')doSearch()"/>
           </div>
           <div class="mod-sect">
-            <button class="mod-toggle" id="toggle-vulns" onclick="toggleMod('vulns')">⚠ Vulns</button>
+            <button class="mod-toggle" id="toggle-vulns" onclick="toggleMod('vulns')">Vulns</button>
             <button class="mod-toggle" id="toggle-http"  onclick="toggleMod('http')" style="margin-left:4px;">HTTP</button>
             <button class="mod-toggle" id="toggle-ssh"   onclick="toggleMod('ssh')"  style="margin-left:4px;">SSH</button>
           </div>
           <div class="mod-sect">
-            <button class="mod-toggle" onclick="clearAll()">✕ Clear</button>
+            <button class="mod-toggle" onclick="clearAll()">Clear</button>
           </div>
         </div>
       </div>
@@ -282,14 +344,15 @@ html,body{width:100%;min-height:100%;background:var(--bg);font-family:'Syne',san
     <div class="status-wrap" id="status-left"></div>
     <div class="toolbar-right">
       <div id="status-right"></div>
-      <button class="tool-btn active" id="view-grid" onclick="setView('grid')">⊞ Grid</button>
-      <button class="tool-btn" id="view-list" onclick="setView('list')">☰ List</button>
+      <button class="tool-btn active" id="view-grid" onclick="setView('grid')">Grid</button>
+      <button class="tool-btn" id="view-list" onclick="setView('list')">List</button>
+      <a href="/topfinds" id="topfinds-btn">Top Finds</a>
       <button id="export-btn" onclick="openExport()">↓ Export</button>
     </div>
   </div>
 
   <div id="empty">
-    <div class="empty-icon">⌖</div>
+    <div class="empty-icon">—</div>
     <div class="empty-title" id="empty-title">Ready to search</div>
     <div class="empty-sub" id="empty-sub">
       Select a type on the left · type your query · hit Search<br><br>
@@ -325,13 +388,10 @@ html,body{width:100%;min-height:100%;background:var(--bg);font-family:'Syne',san
 </div>
 
 <script>
-// ── Session-based key loading ─────────────────────────────────────────────────
-// API key held in memory only — never in localStorage (XSS risk)
 const API_BASE = 'https://api.hyperionosint.com';
 let   API_KEY  = null;
 
 const apiFetch = url => fetch(url, {
-  // Include key if available (for external/API users), but site works without it too
   headers: API_KEY ? { 'X-Hyperion-Key': API_KEY } : {},
 });
 
@@ -349,8 +409,12 @@ let currentQuery='', currentType='';
 let isLoading=false, appendMode=false;
 let exportBuffer=[];
 let modState={vulns:false,http:false,ssh:false};
+let activeLeafletMap=null;
 
-/* Background */
+/* track mini maps so we can clean them up */
+const miniMaps = [];
+
+/* ── Background ── */
 const cv=document.getElementById('bg'),cx=cv.getContext('2d');
 cv.width=window.innerWidth;cv.height=window.innerHeight;
 for(let i=0;i<300;i++){
@@ -358,7 +422,7 @@ for(let i=0;i<300;i++){
   cx.beginPath();cx.arc(x,y,r,0,Math.PI*2);cx.fillStyle=`rgba(55,138,221,${a})`;cx.fill();
 }
 
-/* Type pills */
+/* ── Type pills ── */
 document.querySelectorAll('.type-pill').forEach(pill=>{
   pill.addEventListener('click',()=>{
     document.querySelectorAll('.type-pill').forEach(p=>p.classList.remove('active'));
@@ -399,6 +463,7 @@ function clearAll(){
     const el=document.getElementById('toggle-'+k);
     el.classList.remove('on','red','green');
   });
+  destroyMiniMaps();
   document.getElementById('results').innerHTML='';
   document.getElementById('load-more-wrap').style.display='none';
   document.getElementById('export-btn').classList.remove('visible');
@@ -406,6 +471,12 @@ function clearAll(){
   document.getElementById('empty').style.display='block';
   document.getElementById('empty-title').textContent='Ready to search';
   document.getElementById('empty-sub').innerHTML='Select a type on the left · type your query · hit Search<br><br>port:9100 · CVE-2021-44228 · org:Amazon · tag:redis-noauth';
+  activeLeafletMap=null;
+}
+
+function destroyMiniMaps(){
+  miniMaps.forEach(m=>{try{m.remove();}catch{}});
+  miniMaps.length=0;
 }
 
 function buildQuery(){
@@ -443,6 +514,7 @@ async function doSearch(page=1){
     return;
   }
   currentQuery=q;currentPage=page;appendMode=false;exportBuffer=[];
+  activeLeafletMap=null;
   await fetchResults(page);
 }
 
@@ -459,6 +531,7 @@ async function fetchResults(page){
   const params=new URLSearchParams({q,page,limit:document.getElementById('limit-select').value,sort:document.getElementById('sort-select').value,order:document.getElementById('order-select').value,...getFilters()});
   setStatus('<span class="spinner"></span>Searching…','');
   if(!appendMode){
+    destroyMiniMaps();
     document.getElementById('results').innerHTML='';
     document.getElementById('empty').style.display='none';
     document.getElementById('load-more-wrap').style.display='none';
@@ -497,21 +570,174 @@ function renderResults(data,append){
   }
   document.getElementById('empty').style.display='none';
   cards.forEach((card,i)=>{const el=buildCard(card,i);if(el)container.appendChild(el);});
+
+  /* ── Full-width map card: single IP lookup only ── */
+  if(!append && data.type==='ip' && data.lat != null && data.lng != null){
+    container.appendChild(buildMapCard(data));
+  }
 }
 
+/* ── Pulse marker icon ── */
+function makePulseIcon(small){
+  const sz=small?10:18;
+  const dot=small?4:10;
+  const off=small?3:4;
+  return L.divIcon({
+    className:'',
+    html:`<div style="position:relative;width:${sz}px;height:${sz}px;">
+      <div style="position:absolute;inset:0;background:rgba(55,138,221,0.2);border-radius:50%;animation:pulse-ring 2s ease-out infinite;"></div>
+      <div style="position:absolute;top:${off}px;left:${off}px;width:${dot}px;height:${dot}px;background:#378ADD;border-radius:50%;border:1.5px solid rgba(55,138,221,0.9);"></div>
+    </div>`,
+    iconSize:[sz,sz],
+    iconAnchor:[sz/2,sz/2],
+  });
+}
+
+/* ── Mini map builder (embedded inside card) ── */
+function buildMiniMap(card, cardEl){
+  const lat = parseFloat(card.lat);
+  const lng = parseFloat(card.lng);
+  if(isNaN(lat)||isNaN(lng)) return null;
+
+  const mapId = 'mini-map-' + Date.now() + '-' + Math.random().toString(36).substr(2,5);
+  const wrapper = document.createElement('div');
+  wrapper.className = 'card-mini-map';
+
+  const city = card.city || '';
+  const country = card.country || '';
+
+  wrapper.innerHTML = `
+    <div id="${mapId}" class="mini-map-el"></div>
+    <div class="mini-map-overlay"></div>
+    <span class="mini-map-coords">${lat.toFixed(4)}°, ${lng.toFixed(4)}°</span>
+    <span class="mini-map-expand">expand ↗</span>
+  `;
+
+  /* clicking the mini map fires a search on the IP to get the full view */
+  wrapper.addEventListener('click', e => {
+    e.stopPropagation();
+    searchFor(card.title || card.ip || '');
+  });
+
+  setTimeout(()=>{
+    const el = document.getElementById(mapId);
+    if(!el) return;
+    const map = L.map(mapId, {
+      center: [lat, lng],
+      zoom: 9,
+      zoomControl: false,
+      attributionControl: false,
+      scrollWheelZoom: false,
+      dragging: false,
+      doubleClickZoom: false,
+      touchZoom: false,
+      keyboard: false,
+      boxZoom: false,
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      maxZoom:19,subdomains:['a','b','c'],
+    }).addTo(map);
+    L.marker([lat,lng],{icon:makePulseIcon(true)}).addTo(map);
+    miniMaps.push(map);
+  }, 60);
+
+  return wrapper;
+}
+
+/* ── Full map card builder ── */
+function buildMapCard(data){
+  const mapId = 'leaflet-map-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+  const div = document.createElement('div');
+  div.className = 'card map-card';
+  div.style.animationDelay = '400ms';
+
+  const lat = parseFloat(data.lat).toFixed(4);
+  const lng = parseFloat(data.lng).toFixed(4);
+  const city = data.city || '';
+  const country = data.country || '';
+  const locationLabel = [city, country].filter(Boolean).join(', ');
+
+  div.innerHTML = `
+    <div class="card-header">
+      <div class="card-title">Location${locationLabel ? ' — ' + locationLabel : ''}</div>
+      <span class="map-coords">${lat}°, ${lng}°</span>
+    </div>
+    <div class="card-body">
+      <div id="${mapId}" style="height:340px;width:100%;"></div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    const mapContainer = document.getElementById(mapId);
+    if (!mapContainer) return;
+    if (activeLeafletMap) { activeLeafletMap.remove(); activeLeafletMap = null; }
+    const map = L.map(mapId, {
+      center: [data.lat, data.lng],
+      zoom: 11,
+      zoomControl: true,
+      attributionControl: false,
+      scrollWheelZoom: false,
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, subdomains: ['a', 'b', 'c'],
+    }).addTo(map);
+    L.marker([data.lat, data.lng], { icon: makePulseIcon(false) })
+      .addTo(map)
+      .bindPopup(
+        `<b style="color:#fff;font-size:13px;">${data.ip || currentQuery}</b><br>` +
+        `<span style="color:rgba(180,210,244,0.6);">${locationLabel || 'Unknown location'}</span>`
+      ).openPopup();
+    activeLeafletMap = map;
+  }, 50);
+
+  return div;
+}
+
+/* ── Card builder ── */
 function buildCard(card,index){
   const isSummary=card.type==='rows'&&index===0;
+  const isIpCard=/^\d{1,3}(\.\d{1,3}){3}$/.test(card.title||'');
   const div=document.createElement('div');
-  div.className=`card color-${card.color||'blue'}${isSummary?' summary':''}`;
+  div.className=`card color-${card.color||'blue'}${isSummary?' summary':''}${isIpCard?' clickable':''}`;
   div.style.animationDelay=`${Math.min(index,20)*20}ms`;
+
+  /* whole-card click for IP cards */
+  if(isIpCard){
+    div.addEventListener('click', e=>{
+      /* don't fire if clicking an interactive child */
+      if(e.target.closest('.port-badge,.tag-badge,.email-copy,.account-link,.card-mini-map'))return;
+      searchFor(card.title);
+    });
+  }
+
   const header=document.createElement('div');
   header.className='card-header';
-  if(!isSummary)header.onclick=()=>div.classList.toggle('collapsed');
+  if(!isSummary)header.onclick=()=>{
+    div.classList.toggle('collapsed');
+    /* invalidate mini map size when expanding */
+    if(!div.classList.contains('collapsed')){
+      const mm=div._miniMap;
+      if(mm)setTimeout(()=>mm.invalidateSize(),50);
+    }
+  };
   const title=document.createElement('div');
   title.className='card-title';title.textContent=card.title||'—';
   header.appendChild(title);
   if(!isSummary){const a=document.createElement('span');a.className='card-arrow';a.textContent='▾';header.appendChild(a);}
   div.appendChild(header);
+
+  /* ── Mini map — injected before card-body if geo data present ── */
+  if(!isSummary && card.lat != null && card.lng != null){
+    const mm = buildMiniMap(card, div);
+    if(mm){
+      div.appendChild(mm);
+      /* stash reference for invalidateSize on expand */
+      setTimeout(()=>{
+        div._miniMap = miniMaps[miniMaps.length-1];
+      }, 150);
+    }
+  }
+
   const body=document.createElement('div');
   body.className='card-body';
   if(card.type==='ports'&&card.ports?.length){
@@ -527,6 +753,51 @@ function buildCard(card,index){
   if(card.type==='accounts'&&card.accounts?.length){
     card.accounts.forEach(a=>{const r=document.createElement('div');r.className='account-row';r.innerHTML=`<span class="account-platform">${a.platform||'—'}</span><span class="account-handle">${a.handle||'—'}</span>${a.url&&a.url!=='—'?`<a class="account-link" href="${a.url}" target="_blank" rel="noopener">↗</a>`:''}`;body.appendChild(r);});
   }
+  if(card.type==='emails'&&card.emails?.length){
+    const w=document.createElement('div');w.className='emails-wrap';
+    card.emails.forEach(email=>{
+      const r=document.createElement('div');r.className='email-row';
+      const addr=document.createElement('span');addr.className='email-addr';addr.textContent=email;
+      const btn=document.createElement('button');btn.className='email-copy';btn.textContent='Copy';
+      btn.onclick=e=>{e.stopPropagation();navigator.clipboard.writeText(email).then(()=>{btn.textContent='Copied';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},1500);});};
+      r.appendChild(addr);r.appendChild(btn);w.appendChild(r);
+    });
+    body.appendChild(w);
+  }
+  if(card.type==='exposed_files'&&card.files?.length){
+    const w=document.createElement('div');w.className='findings-wrap';
+    card.files.forEach(f=>{
+      const r=document.createElement('div');r.className='finding-row';
+      const sc=f.status===200?'s200':f.status===403?'s403':f.status===401?'s401':'sother';
+      const badge=document.createElement('span');badge.className=`finding-status ${sc}`;badge.textContent=f.status;
+      const info=document.createElement('span');info.className='finding-path';info.textContent=f.path;
+      if(f.snippet){const snip=document.createElement('span');snip.className='finding-snippet';snip.textContent=f.snippet.slice(0,120);info.appendChild(snip);}
+      r.appendChild(badge);r.appendChild(info);w.appendChild(r);
+    });
+    body.appendChild(w);
+  }
+  if(card.type==='js_findings'&&card.findings?.length){
+    const w=document.createElement('div');w.className='findings-wrap';
+    card.findings.forEach(f=>{
+      const r=document.createElement('div');r.className='jsfinding-row';
+      const fileEl=document.createElement('div');fileEl.className='jsfinding-file';fileEl.textContent=f.file;
+      r.appendChild(fileEl);
+      const addItem=(label,vals)=>{
+        if(!vals?.length)return;
+        const d=document.createElement('div');d.className='jsfinding-item';
+        const l=document.createElement('span');l.className='jsfinding-label';l.textContent=label;
+        const v=document.createElement('span');v.className='jsfinding-val';
+        v.textContent=Array.isArray(vals)?vals.slice(0,4).join(', '):vals;
+        d.appendChild(l);d.appendChild(v);r.appendChild(d);
+      };
+      addItem('Emails',f.emails);
+      addItem('Endpoints',f.endpoints);
+      addItem('Tokens',f.tokens?.map(t=>t.value));
+      addItem('Int. IPs',f.internal_ips);
+      w.appendChild(r);
+    });
+    body.appendChild(w);
+  }
   if(card.rows?.length){
     card.rows.forEach(r=>{
       if(r.val==='—')return;
@@ -539,7 +810,7 @@ function buildCard(card,index){
     });
   }
   div.appendChild(body);
-  if(!isSummary&&card.title&&card.title!=='—'){title.style.cursor='pointer';title.onclick=e=>{e.stopPropagation();searchFor(card.title);};}
+  if(!isSummary&&!isIpCard&&card.title&&card.title!=='—'){title.style.cursor='pointer';title.onclick=e=>{e.stopPropagation();searchFor(card.title);};}
   return div;
 }
 
@@ -580,6 +851,8 @@ function setView(m){
   document.getElementById('view-grid').classList.toggle('active',m==='grid');
   document.getElementById('view-list').classList.toggle('active',m==='list');
   document.getElementById('results').classList.toggle('list-view',m==='list');
+  if(activeLeafletMap)setTimeout(()=>activeLeafletMap.invalidateSize(),50);
+  miniMaps.forEach(mm=>setTimeout(()=>mm.invalidateSize(),50));
 }
 
 function openExport(){
@@ -618,7 +891,7 @@ function dl(filename,content,mime){
   document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
 }
 
-window.addEventListener('DOMContentLoaded', async ()=>{
+window.addEventListener('DOMContentLoaded',async()=>{
   await loadApiKey();
   const q=new URLSearchParams(window.location.search).get('q');
   if(q){document.getElementById('query-input').value=q;currentQuery=q;doSearch();}
